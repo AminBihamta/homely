@@ -11,18 +11,60 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final emailController = TextEditingController();
 
-  void resetPassword() {
-    final success = AuthService.resetPassword(emailController.text.trim());
+  void resetPassword() async {
+    final email = emailController.text.trim();
+    if (email.isEmpty) {
+      showError("Please enter your email.");
+      return;
+    }
+
+    // Prompt for new password
+    final newPassword = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        final newPasswordController = TextEditingController();
+        return AlertDialog(
+          title: const Text("Enter New Password"),
+          content: TextField(
+            controller: newPasswordController,
+            obscureText: true,
+            decoration: const InputDecoration(labelText: "New Password"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Cancel
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed:
+                  () => Navigator.pop(context, newPasswordController.text),
+              child: const Text("Submit"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (newPassword == null || newPassword.isEmpty) {
+      showError("Password reset cancelled or empty password.");
+      return;
+    }
+
+    final success = AuthService.overwritePassword(email, newPassword);
     if (success) {
       showDialog(
         context: context,
-        builder: (_) => AlertDialog(
-          title: const Text("Success"),
-          content: const Text("Password reset link sent."),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("OK"))
-          ],
-        ),
+        builder:
+            (_) => AlertDialog(
+              title: const Text("Success"),
+              content: const Text("Password has been reset."),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("OK"),
+                ),
+              ],
+            ),
       );
     } else {
       showError("Email not found.");
@@ -32,13 +74,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   void showError(String msg) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Error"),
-        content: Text(msg),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("OK"))
-        ],
-      ),
+      builder:
+          (_) => AlertDialog(
+            title: const Text("Error"),
+            content: Text(msg),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
     );
   }
 
@@ -52,12 +98,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           children: [
             TextField(
               controller: emailController,
-              decoration: InputDecoration(labelText: "Email", border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                labelText: "Email",
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: resetPassword,
-              style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+              ),
               child: const Text("Reset Password"),
             ),
           ],

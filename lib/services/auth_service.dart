@@ -23,10 +23,21 @@ class AuthService {
     return true;
   }
 
-  static bool resetPassword(String email) {
-    final exists = _users.any((user) => user.email == email);
-    return exists;
+  // Overwrite password for the user with the given email
+  static bool overwritePassword(String email, String newPassword) {
+    for (var user in _users) {
+      if (user.email == email) {
+        user.password = newPassword;
+        return true;
+      }
+    }
+    return false; // Email not found
   }
+
+  // static bool resetPassword(String email) {
+  //   final exists = _users.any((user) => user.email == email);
+  //   return exists;
+  // }
 
   static void signOut() {
     _loggedInUser = null;
