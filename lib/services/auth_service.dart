@@ -1,7 +1,7 @@
 import '../models/user_model.dart';
 
 class AuthService {
-  static final List<UserModel> _users = [];
+  static List<UserModel> get _users => users;
   static UserModel? _loggedInUser;
 
   static UserModel? get currentUser => _loggedInUser;
