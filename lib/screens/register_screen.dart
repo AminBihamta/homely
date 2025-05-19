@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
+import '../models/user_model.dart'; // Add this import
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,6 +15,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final passwordController = TextEditingController();
 
   void register() {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    // Check if email already exists
+    final emailExists = users.any((user) => user.email == email);
+    if (emailExists) {
+      showDialog(
+        context: context,
+        builder:
+            (_) => const AlertDialog(
+              title: Text("Login Failed"),
+              content: Text(
+                "Email already exists. Please use a different email.",
+              ),
+            ),
+      );
+      return;
+    }
+
     final success = AuthService.signUp(
       emailController.text.trim(),
       passwordController.text.trim(),
