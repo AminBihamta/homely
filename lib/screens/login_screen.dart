@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import 'register_screen.dart';
-import 'forgot_password_screen.dart';
-import '../home_screen.dart';
+import '../services/auth_service.dart'; 
+import 'register_screen.dart';          
+import 'forgot_password_screen.dart';   
+import '../home_screen.dart';           
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,11 +15,15 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+  ///handles the login flow
+  ///if succeeds pushes into homescreen, failure shows a popup
   void login() {
+    // pass email and password into auth service that are recieved from ui textfield
     final success = AuthService.signIn(
       emailController.text,
       passwordController.text,
     );
+    //in-case of sucess push home screen into ui, failure shows error
     if (success) {
       Navigator.pushReplacement(
         context,

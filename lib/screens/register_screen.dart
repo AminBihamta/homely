@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'login_screen.dart';
-import '../models/user_model.dart'; // Add this import
+import '../models/user_model.dart'; 
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,6 +13,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+///handles registration flow
+///checks if emails exists already, if not then passes email and password to
+///auth service. if registration succeeds then UI is popped back to login screen
   void register() {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
@@ -34,9 +36,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    final success = AuthService.signUp(
-      emailController.text.trim(),
-      passwordController.text.trim(),
+    final success = AuthService.signUp( //pass password and email to auth service
+      email,
+      password,
     );
     if (success) {
       Navigator.pop(context); // Go back to login
@@ -73,8 +75,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 20),
               child: Image.asset(
-                'assets/homely_logo.png', // or .webp, .jpg, etc.
-                height: 100, // Adjust as needed
+                'assets/homely_logo.png', 
+                height: 100, 
               ),
             ),
             TextField(
@@ -95,7 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: register,
+              onPressed: register, //goes to registration flow
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
               ),

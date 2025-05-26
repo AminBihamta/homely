@@ -11,6 +11,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final emailController = TextEditingController();
 
+  //incase user clicked on reset password button without putting in the email 
   void resetPassword() async {
     final email = emailController.text.trim();
     if (email.isEmpty) {
@@ -50,6 +51,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       return;
     }
 
+    ///responsibel for updating the old password with new
+    ///gets the new password from Ui textfield and sends it to auth service
+    ///if successful goes back to login screen, else displays error msg
     final success = AuthService.overwritePassword(email, newPassword);
     if (success) {
       showDialog(
@@ -60,7 +64,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               content: const Text("Password has been reset."),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(context), //back to login
                   child: const Text("OK"),
                 ),
               ],
