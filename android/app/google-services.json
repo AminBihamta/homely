@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1029565748798",
+    "project_id": "homely-9a631",
+    "storage_bucket": "homely-9a631.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1029565748798:android:fedb055b4d377123bfa36f",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1homely2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDF3DCUKgghuBnRldWAeZpU35oAf6FBl0U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
