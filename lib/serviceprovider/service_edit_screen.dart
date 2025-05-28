@@ -38,20 +38,24 @@ class _ServiceEditScreenState extends State<ServiceEditScreen> {
   }
 
   Future<List<String>> _fetchCategories() async {
-    final snapshot = await FirebaseFirestore.instance.collection('service_categories').get();
+    final snapshot =
+        await FirebaseFirestore.instance.collection('service_categories').get();
     return snapshot.docs.map((doc) => doc.id).toList();
   }
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate() && _selectedCategory != null) {
       _formKey.currentState!.save();
-      await FirebaseFirestore.instance.collection('services').doc(widget.serviceId).update({
-        'name': _name,
-        'description': _description,
-        'hourly_rate': _hourlyRate,
-        'category': _selectedCategory,
-        'updated_at': FieldValue.serverTimestamp(),
-      });
+      await FirebaseFirestore.instance
+          .collection('services')
+          .doc(widget.serviceId)
+          .update({
+            'name': _name,
+            'description': _description,
+            'hourly_rate': _hourlyRate,
+            'category': _selectedCategory,
+            'updated_at': FieldValue.serverTimestamp(),
+          });
       Navigator.pop(context, true);
     }
   }
@@ -76,33 +80,52 @@ class _ServiceEditScreenState extends State<ServiceEditScreen> {
                   DropdownButtonFormField<String>(
                     decoration: const InputDecoration(labelText: 'Category'),
                     value: _selectedCategory,
-                    items: categories
-                        .map((cat) => DropdownMenuItem(
-                              value: cat,
-                              child: Text(cat),
-                            ))
-                        .toList(),
+                    items:
+                        categories
+                            .map(
+                              (cat) => DropdownMenuItem(
+                                value: cat,
+                                child: Text(cat),
+                              ),
+                            )
+                            .toList(),
                     onChanged: (val) => setState(() => _selectedCategory = val),
-                    validator: (val) => val == null ? 'Please select a category' : null,
+                    validator:
+                        (val) =>
+                            val == null ? 'Please select a category' : null,
                   ),
                   TextFormField(
                     initialValue: _name,
-                    decoration: const InputDecoration(labelText: 'Service Name'),
+                    decoration: const InputDecoration(
+                      labelText: 'Service Name',
+                    ),
                     onSaved: (value) => _name = value ?? '',
-                    validator: (value) => value!.isEmpty ? 'Please enter a name' : null,
+                    validator:
+                        (value) =>
+                            value!.isEmpty ? 'Please enter a name' : null,
                   ),
                   TextFormField(
                     initialValue: _description,
                     decoration: const InputDecoration(labelText: 'Description'),
                     onSaved: (value) => _description = value ?? '',
-                    validator: (value) => value!.isEmpty ? 'Please enter a description' : null,
+                    validator:
+                        (value) =>
+                            value!.isEmpty
+                                ? 'Please enter a description'
+                                : null,
                   ),
                   TextFormField(
                     initialValue: _hourlyRate.toString(),
                     decoration: const InputDecoration(labelText: 'Hourly Rate'),
                     keyboardType: TextInputType.number,
-                    onSaved: (value) => _hourlyRate = double.tryParse(value ?? '0') ?? 0.0,
-                    validator: (value) => value!.isEmpty ? 'Please enter an hourly rate' : null,
+                    onSaved:
+                        (value) =>
+                            _hourlyRate = double.tryParse(value ?? '0') ?? 0.0,
+                    validator:
+                        (value) =>
+                            value!.isEmpty
+                                ? 'Please enter an hourly rate'
+                                : null,
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
