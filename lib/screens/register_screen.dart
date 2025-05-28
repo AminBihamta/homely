@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -11,6 +12,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  bool isProvider = false; // Add this to track the switch
 
   ///main registration flow
   void register() async {
@@ -21,6 +23,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
     
     if (success) {
+      // Set isProvider in Firestore after successful signup
+      final user = AuthService.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('user_data').doc(user.uid).set({
+          'email': user.email,
+          'isProvider': isProvider,
+        });
+      }
       Navigator.pop(context); // Go back to login
     } else {
       showError("Registration failed. Email may already be in use or password is too weak.");
@@ -58,6 +68,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 height: 100,
               ),
             ),
+            // Add the switch UI here
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ChoiceChip(
+                  label: const Text('Service Receiver'),
+                  selected: !isProvider,
+                  onSelected: (selected) {
+                    setState(() {
+                      isProvider = false;
+                    });
+                  },
+                ),
+                const SizedBox(width: 12),
+                ChoiceChip(
+                  label: const Text('Service Provider'),
+                  selected: isProvider,
+                  onSelected: (selected) {
+                    setState(() {
+                      isProvider = true;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             TextField(
               controller: emailController,
               decoration: const InputDecoration(
@@ -74,6 +110,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
+            
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: register,
