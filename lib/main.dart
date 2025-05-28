@@ -1,28 +1,35 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
+import 'screens/login_screen.dart'; //login screen
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 void main() async {
-  try {
-    // Ensure Flutter is initialized before Firebase
-    WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const MyApp());
+=======
+//   try {
+//     // Ensure Flutter is initialized before Firebase
+//     WidgetsFlutterBinding.ensureInitialized();
 
-    // Initialize Firebase with platform-specific options
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+//     // Initialize Firebase with platform-specific options
+//     await Firebase.initializeApp(
+//       options: DefaultFirebaseOptions.currentPlatform,
+//     );
 
-    // Test Firestore connection (optional)
-    // await testFirestoreConnection();
+//     // Test Firestore connection (optional)
+//     // await testFirestoreConnection();
 
-    // Run the app
-    runApp(const MyApp());
-  } catch (e) {
-    print('Error during initialization: $e');
-    // Still run the app even if there are Firebase errors
-    runApp(const MyApp());
-  }
+//     // Run the app
+//     runApp(const MyApp());
+//   } catch (e) {
+//     print('Error during initialization: $e');
+//     // Still run the app even if there are Firebase errors
+//     runApp(const MyApp());
+//   }
+// >>>>>>> main
 }
 
 /// Tests the connection to Firestore by making a simple query

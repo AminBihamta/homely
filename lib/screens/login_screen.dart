@@ -15,11 +15,17 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  void login() {
-    final success = AuthService.signIn(
-      emailController.text,
-      passwordController.text,
-    );
+  ///handles the login flow
+  ///if succeeds pushes into homescreen, failure shows a popup
+  void login() async {
+    // pass email and password into auth service that are recieved from ui textfield
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    final success = await AuthService.signIn(email, password);
+    if (!mounted) return;
+    
+    //in-case of sucess push home screen into ui, failure shows error
     if (success) {
       Navigator.pushReplacement(
         context,
