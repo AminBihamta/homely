@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../serviceprovider/service_edit_screen.dart';
 import '../serviceprovider/service_form.dart';
+import '../screens/login_screen.dart';
+import '../services/auth_service.dart';
 import 'theme/colors.dart';
 
 class ServiceProviderDashboard extends StatefulWidget {
@@ -86,6 +88,14 @@ class _ServiceProviderDashboardState extends State<ServiceProviderDashboard> {
     );
   }
 
+  void logout(BuildContext context) {
+    AuthService.signOut();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (userId == null) {
@@ -109,6 +119,12 @@ class _ServiceProviderDashboardState extends State<ServiceProviderDashboard> {
         ),
         iconTheme: IconThemeData(color: AppColors.background),
         elevation: 2,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: AppColors.highlight),
+            onPressed: () => logout(context),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
