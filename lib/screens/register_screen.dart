@@ -92,7 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ChoiceChip(
-                  label: const Text('Service Receiver'),
+                  label: const Text('Homeowner'),
                   selected: !isProvider,
                   onSelected: (selected) {
                     setState(() {
