@@ -1,45 +1,40 @@
-import '../models/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
-  static List<UserModel> get _users => users;
-  static UserModel? _loggedInUser;
+  static final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  static UserModel? get currentUser => _loggedInUser;
+  static User? get currentUser => _auth.currentUser;
 
-  static bool signUp(String email, String password) {
-    final existingUser = _users.any((user) => user.email == email);
-    if (existingUser) return false;
-    _users.add(UserModel(email: email, password: password));
-    return true;
-  }
-
-  static bool signIn(String email, String password) {
-    final user = _users.firstWhere(
-      (user) => user.email == email && user.password == password,
-      orElse: () => UserModel(email: '', password: ''),
-    );
-    if (user.email.isEmpty) return false;
-    _loggedInUser = user;
-    return true;
-  }
-
-  // Overwrite password for the user with the given email
-  static bool overwritePassword(String email, String newPassword) {
-    for (var user in _users) {
-      if (user.email == email) {
-        user.password = newPassword;
-        return true;
-      }
+  static Future<bool> signUp(String email, String password) async {
+    try {
+      await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      return true;
+    } catch (e) {
+      return false;
     }
-    return false; // Email not found
   }
 
-  // static bool resetPassword(String email) {
-  //   final exists = _users.any((user) => user.email == email);
-  //   return exists;
-  // }
+  static Future<bool> signIn(String email, String password) async {
+    try {
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 
-  static void signOut() {
-    _loggedInUser = null;
+  static Future<void> signOut() async {
+    await _auth.signOut();
+  }
+
+  // Firebase does not allow direct password overwrite without re-authentication.
+  // Instead, send a password reset email.
+  static Future<bool> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }
