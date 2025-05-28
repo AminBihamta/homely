@@ -12,6 +12,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+  ///main registration flow
   void register() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();

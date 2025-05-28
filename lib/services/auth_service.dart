@@ -27,8 +27,9 @@ class AuthService {
     await _auth.signOut();
   }
 
-  // Firebase does not allow direct password overwrite without re-authentication.
-  // Instead, send a password reset email.
+  /// Firebase does not allow direct password overwrite 
+  /// without re-authentication.
+  /// Instead, send a password reset email.
   static Future<bool> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);

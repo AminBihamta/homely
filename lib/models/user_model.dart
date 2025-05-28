@@ -1,3 +1,5 @@
+/// apparently this is uneeded if using firebase auth
+/// but am still keeping it here just in case (:
 class UserModel {
   String email;
   String password;
