@@ -3,6 +3,7 @@ import '../services/auth_service.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
 import '../home_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,12 +26,28 @@ class _LoginScreenState extends State<LoginScreen> {
     final success = await AuthService.signIn(email, password);
     if (!mounted) return;
     
-    //in-case of sucess push home screen into ui, failure shows error
     if (success) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      // After login, check isProvider from Firestore
+      final user = AuthService.currentUser;
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance.collection('user_data').doc(user.uid).get();
+        final data = doc.data() ?? {};
+        final isProvider = data['isProvider'] == true;
+        if (isProvider) {
+          Navigator.pushReplacementNamed(context, '/serviceProviderDashboard');
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
+      } else {
+        // fallback: go to home
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
     } else {
       showDialog(
         context: context,
