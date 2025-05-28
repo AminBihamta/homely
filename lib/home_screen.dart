@@ -173,13 +173,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           .where('category', isEqualTo: selectedCategory)
                           .snapshots(),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData)
+                    if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
+                    }
 
                     final docs = snapshot.data!.docs;
 
-                    if (docs.isEmpty)
+                    if (docs.isEmpty) {
                       return const Center(child: Text('No services available'));
+                    }
 
                     return ListView.builder(
                       scrollDirection: Axis.horizontal,

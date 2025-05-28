@@ -9,7 +9,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(const MyApp());
-=======
+
 //   try {
 //     // Ensure Flutter is initialized before Firebase
 //     WidgetsFlutterBinding.ensureInitialized();
