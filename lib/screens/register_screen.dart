@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
+import '../theme/colors.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -56,7 +57,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Register")),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text("Register", style: TextStyle(color: AppColors.background)),
+        backgroundColor: AppColors.primary,
+        iconTheme: const IconThemeData(color: AppColors.background),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -68,7 +74,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 height: 100,
               ),
             ),
-            // Add the switch UI here
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -80,6 +85,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       isProvider = false;
                     });
                   },
+                  selectedColor: AppColors.highlight,
+                  backgroundColor: AppColors.background,
+                  labelStyle: TextStyle(
+                    color: !isProvider ? AppColors.background : AppColors.primary,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 ChoiceChip(
@@ -90,6 +100,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       isProvider = true;
                     });
                   },
+                  selectedColor: AppColors.highlight,
+                  backgroundColor: AppColors.background,
+                  labelStyle: TextStyle(
+                    color: isProvider ? AppColors.background : AppColors.primary,
+                  ),
                 ),
               ],
             ),
@@ -99,7 +114,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
               decoration: const InputDecoration(
                 labelText: "Email",
                 border: OutlineInputBorder(),
+                labelStyle: TextStyle(color: AppColors.text),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.primary),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.highlight, width: 2),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+                filled: true,
+                fillColor: AppColors.background,
               ),
+              style: const TextStyle(color: AppColors.text),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -108,16 +135,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
               decoration: const InputDecoration(
                 labelText: "Password",
                 border: OutlineInputBorder(),
+                labelStyle: TextStyle(color: AppColors.text),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.primary),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.highlight, width: 2),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+                filled: true,
+                fillColor: AppColors.background,
               ),
+              style: const TextStyle(color: AppColors.text),
             ),
-            
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: register,
               style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.background,
                 minimumSize: const Size.fromHeight(50),
+                textStyle: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              child: const Text("Sign Up"),
+              child: const Text("Register"),
             ),
           ],
         ),

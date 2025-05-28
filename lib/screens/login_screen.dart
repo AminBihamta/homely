@@ -4,6 +4,7 @@ import 'register_screen.dart';
 import 'forgot_password_screen.dart';
 import '../home_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../theme/colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -63,43 +64,97 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login")),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text("Login", style: TextStyle(color: AppColors.background)),
+        backgroundColor: AppColors.primary,
+        iconTheme: const IconThemeData(color: AppColors.background),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Image.asset(
-              'assets/homely_logo.png', // or .webp, .jpg, etc.
-              height: 100, // Adjust as needed
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Image.asset(
+                'assets/homely_logo.png',
+                height: 100,
+              ),
             ),
             TextField(
               controller: emailController,
-              decoration: const InputDecoration(labelText: "Email"),
+              decoration: const InputDecoration(
+                labelText: "Email",
+                border: OutlineInputBorder(),
+                labelStyle: TextStyle(color: AppColors.text),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.primary),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.highlight, width: 2),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+                filled: true,
+                fillColor: AppColors.background,
+              ),
+              style: const TextStyle(color: AppColors.text),
             ),
+            const SizedBox(height: 12),
             TextField(
               controller: passwordController,
-              decoration: const InputDecoration(labelText: "Password"),
+              decoration: const InputDecoration(
+                labelText: "Password",
+                border: OutlineInputBorder(),
+                labelStyle: TextStyle(color: AppColors.text),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.primary),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.highlight, width: 2),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+                filled: true,
+                fillColor: AppColors.background,
+              ),
               obscureText: true,
+              style: const TextStyle(color: AppColors.text),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(onPressed: login, child: const Text("Login")),
-            TextButton(
-              onPressed:
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                  ),
-              child: const Text("Register"),
+            ElevatedButton(
+              onPressed: login,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.background,
+                minimumSize: const Size.fromHeight(50),
+                textStyle: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              child: const Text("Login"),
             ),
             TextButton(
-              onPressed:
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ForgotPasswordScreen(),
-                    ),
-                  ),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RegisterScreen()),
+              ),
+              child: const Text("Register"),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                minimumSize: const Size.fromHeight(50),
+                textStyle: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ForgotPasswordScreen(),
+                ),
+              ),
               child: const Text("Forgot Password?"),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+              ),
             ),
           ],
         ),
