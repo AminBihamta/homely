@@ -18,6 +18,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final password = passwordController.text.trim();
 
     final success = await AuthService.signUp(email, password);
+    if (!mounted) return;
+    
     if (success) {
       Navigator.pop(context); // Go back to login
     } else {

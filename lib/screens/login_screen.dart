@@ -23,6 +23,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = passwordController.text.trim();
 
     final success = await AuthService.signIn(email, password);
+    if (!mounted) return;
+    
     //in-case of sucess push home screen into ui, failure shows error
     if (success) {
       Navigator.pushReplacement(

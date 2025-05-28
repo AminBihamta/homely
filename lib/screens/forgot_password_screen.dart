@@ -21,6 +21,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     //in case of success an email link is sent to user and a dialog window opens up and shows success with a button that pops back into login screen
     final success = await AuthService.sendPasswordResetEmail(email);
+    if (!mounted) return;
+    
     if (success) {
       showDialog(
         context: context,
