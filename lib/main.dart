@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/login_screen.dart'; //login screen
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'service_provider_dashboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,6 +60,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(primarySwatch: Colors.blue),
       home: const LoginScreen(),
       debugShowCheckedModeBanner: false,
+      routes: {
+        '/serviceProviderDashboard': (context) => const ServiceProviderDashboard(),
+      },
     );
   }
 }
