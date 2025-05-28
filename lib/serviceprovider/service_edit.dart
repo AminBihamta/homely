@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../theme/colors.dart';
 
 class ServiceFormScreen extends StatefulWidget {
   const ServiceFormScreen({super.key});
@@ -50,76 +51,185 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Service')),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        title: const Text(
+          'Add Service',
+          style: TextStyle(color: AppColors.background),
+        ),
+        iconTheme: const IconThemeData(color: AppColors.background),
+        elevation: 2,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: FutureBuilder<List<String>>(
-          future: _fetchCategories(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            final categories = snapshot.data!;
-            return Form(
-              key: _formKey,
-              child: ListView(
-                children: [
-                  DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(labelText: 'Category'),
-                    value: _selectedCategory,
-                    items:
-                        categories
-                            .map(
-                              (cat) => DropdownMenuItem(
-                                value: cat,
-                                child: Text(cat),
-                              ),
-                            )
-                            .toList(),
-                    onChanged: (val) => setState(() => _selectedCategory = val),
-                    validator:
-                        (val) =>
-                            val == null ? 'Please select a category' : null,
-                  ),
-                  TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Service Name',
-                    ),
-                    onSaved: (value) => _name = value ?? '',
-                    validator:
-                        (value) =>
-                            value!.isEmpty ? 'Please enter a name' : null,
-                  ),
-                  TextFormField(
-                    decoration: const InputDecoration(labelText: 'Description'),
-                    onSaved: (value) => _description = value ?? '',
-                    validator:
-                        (value) =>
-                            value!.isEmpty
-                                ? 'Please enter a description'
-                                : null,
-                  ),
-                  TextFormField(
-                    decoration: const InputDecoration(labelText: 'Hourly Rate'),
-                    keyboardType: TextInputType.number,
-                    onSaved:
-                        (value) =>
-                            _hourlyRate = double.tryParse(value ?? '0') ?? 0.0,
-                    validator:
-                        (value) =>
-                            value!.isEmpty
-                                ? 'Please enter an hourly rate'
-                                : null,
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _submitForm,
-                    child: const Text('Add Service'),
-                  ),
-                ],
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-            );
-          },
+            ],
+          ),
+          child: FutureBuilder<List<String>>(
+            future: _fetchCategories(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                );
+              }
+              final categories = snapshot.data!;
+              return Form(
+                key: _formKey,
+                child: ListView(
+                  children: [
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        labelText: 'Category',
+                        labelStyle: TextStyle(color: AppColors.text),
+                        border: OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColors.primary),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: AppColors.highlight,
+                            width: 2,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: AppColors.background,
+                      ),
+                      value: _selectedCategory,
+                      items:
+                          categories
+                              .map(
+                                (cat) => DropdownMenuItem(
+                                  value: cat,
+                                  child: Text(
+                                    cat,
+                                    style: const TextStyle(
+                                      color: AppColors.text,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                      onChanged:
+                          (val) => setState(() => _selectedCategory = val),
+                      validator:
+                          (val) =>
+                              val == null ? 'Please select a category' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Service Name',
+                        labelStyle: TextStyle(color: AppColors.text),
+                        border: OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColors.primary),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: AppColors.highlight,
+                            width: 2,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: AppColors.background,
+                      ),
+                      style: const TextStyle(color: AppColors.text),
+                      onSaved: (value) => _name = value ?? '',
+                      validator:
+                          (value) =>
+                              value!.isEmpty ? 'Please enter a name' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Description',
+                        labelStyle: TextStyle(color: AppColors.text),
+                        border: OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColors.primary),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: AppColors.highlight,
+                            width: 2,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: AppColors.background,
+                      ),
+                      style: const TextStyle(color: AppColors.text),
+                      onSaved: (value) => _description = value ?? '',
+                      validator:
+                          (value) =>
+                              value!.isEmpty
+                                  ? 'Please enter a description'
+                                  : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Hourly Rate',
+                        labelStyle: TextStyle(color: AppColors.text),
+                        border: OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColors.primary),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: AppColors.highlight,
+                            width: 2,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: AppColors.background,
+                      ),
+                      style: const TextStyle(color: AppColors.text),
+                      keyboardType: TextInputType.number,
+                      onSaved:
+                          (value) =>
+                              _hourlyRate =
+                                  double.tryParse(value ?? '0') ?? 0.0,
+                      validator:
+                          (value) =>
+                              value!.isEmpty
+                                  ? 'Please enter an hourly rate'
+                                  : null,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.background,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: _submitForm,
+                        child: const Text(
+                          'Add Service',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
