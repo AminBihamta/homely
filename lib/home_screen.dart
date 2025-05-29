@@ -43,16 +43,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (user == null) return null;
 
     final uid = user.uid;
-    final email = user.email ?? '';
-    final username = email.split('@').first;
 
-    final doc =
-        await FirebaseFirestore.instance.collection('user_data').doc(uid).get();
+    final doc = await FirebaseFirestore.instance.collection('user_data').doc(uid).get();
 
     if (!doc.exists) return null;
 
     final data = doc.data() ?? {};
-    data['username'] = username;
+    // Add fallback for missing fields
+    data['name'] = data['name'] ?? '';
+    data['address'] = data['address'] ?? '';
     return data;
   }
 
@@ -96,12 +95,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   future: fetchUserData(),
                   builder: (context, snapshot) {
                     final userInfo = snapshot.data ?? {};
-                    final address = userInfo['Address'] ?? '-';
-                    final username = userInfo['username'] ?? '';
-                    final displayName =
-                        username.isNotEmpty
-                            ? '${username[0].toUpperCase()}${username.substring(1)}'
-                            : 'User';
+                    final address = userInfo['address'] ?? '-';
+                    final name = userInfo['name'] ?? '-';
 
                     return Padding(
                       padding: const EdgeInsets.only(top: 8),
@@ -119,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           Flexible(
                             child: Text(
-                              'Welcome, $displayName!',
+                              'Welcome, $name!',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.text,
