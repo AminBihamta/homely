@@ -29,9 +29,9 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
 
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('User not logged in.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not logged in.')),
+        );
         return;
       }
 
@@ -44,7 +44,50 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
         'created_at': FieldValue.serverTimestamp(),
       });
 
-      Navigator.pop(context, true);
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return Dialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.check_circle_outline,
+                      size: 60, color: Colors.black87),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Service Added!',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context); // close dialog
+                      Navigator.pop(context, true); // close form screen
+                    },
+                    child: const Text('View My Services'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
     }
   }
 
@@ -52,180 +95,192 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        title: const Text(
-          'Add Service',
-          style: TextStyle(color: AppColors.background),
-        ),
-        iconTheme: const IconThemeData(color: AppColors.background),
-        elevation: 2,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
           child: FutureBuilder<List<String>>(
             future: _fetchCategories(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                );
+                return const Center(child: CircularProgressIndicator());
               }
+
               final categories = snapshot.data!;
-              return Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: 'Category',
-                        labelStyle: TextStyle(color: AppColors.text),
-                        border: OutlineInputBorder(),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.primary),
+
+              return SingleChildScrollView(
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: AppColors.highlight,
-                            width: 2,
+                      ],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back),
+                            onPressed: () => Navigator.pop(context),
                           ),
-                        ),
-                        filled: true,
-                        fillColor: AppColors.background,
-                      ),
-                      value: _selectedCategory,
-                      items:
-                          categories
-                              .map(
-                                (cat) => DropdownMenuItem(
-                                  value: cat,
-                                  child: Text(
-                                    cat,
-                                    style: const TextStyle(
-                                      color: AppColors.text,
+                          const SizedBox(height: 8),
+                          const Center(
+                            child: Text(
+                              'Add Service',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          DropdownButtonFormField<String>(
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: const Color(0xFFF7F7F7),
+                              labelText: 'Category',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            value: _selectedCategory,
+                            items: categories
+                                .map((cat) => DropdownMenuItem(
+                                      value: cat,
+                                      child: Text(cat),
+                                    ))
+                                .toList(),
+                            onChanged: (val) =>
+                                setState(() => _selectedCategory = val),
+                            validator: (val) => val == null
+                                ? 'Please select a category'
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: const Color(0xFFF7F7F7),
+                              prefixIcon: const Icon(Icons.edit),
+                              labelText: 'Service Name',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            onSaved: (value) => _name = value ?? '',
+                            validator: (value) => value!.isEmpty
+                                ? 'Please enter a service name'
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: TextFormField(
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: const Color(0xFFF7F7F7),
+                                    labelText: 'Hourly Rate',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide.none,
                                     ),
                                   ),
+                                  keyboardType: TextInputType.number,
+                                  onSaved: (value) => _hourlyRate =
+                                      double.tryParse(value ?? '0') ?? 0.0,
+                                  validator: (value) => value!.isEmpty
+                                      ? 'Enter hourly rate'
+                                      : null,
                                 ),
-                              )
-                              .toList(),
-                      onChanged:
-                          (val) => setState(() => _selectedCategory = val),
-                      validator:
-                          (val) =>
-                              val == null ? 'Please select a category' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Service Name',
-                        labelStyle: TextStyle(color: AppColors.text),
-                        border: OutlineInputBorder(),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.primary),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: AppColors.highlight,
-                            width: 2,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 16),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF7F7F7),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Center(
+                                    child: Text('/hr'),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        filled: true,
-                        fillColor: AppColors.background,
-                      ),
-                      style: const TextStyle(color: AppColors.text),
-                      onSaved: (value) => _name = value ?? '',
-                      validator:
-                          (value) =>
-                              value!.isEmpty ? 'Please enter a name' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
-                        labelStyle: TextStyle(color: AppColors.text),
-                        border: OutlineInputBorder(),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.primary),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: AppColors.highlight,
-                            width: 2,
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: const Color(0xFFF7F7F7),
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              labelText: 'Service Details',
+                              alignLabelWithHint: true,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            onSaved: (value) => _description = value ?? '',
+                            validator: (value) => value!.isEmpty
+                                ? 'Please enter service details'
+                                : null,
                           ),
-                        ),
-                        filled: true,
-                        fillColor: AppColors.background,
-                      ),
-                      style: const TextStyle(color: AppColors.text),
-                      onSaved: (value) => _description = value ?? '',
-                      validator:
-                          (value) =>
-                              value!.isEmpty
-                                  ? 'Please enter a description'
-                                  : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Hourly Rate',
-                        labelStyle: TextStyle(color: AppColors.text),
-                        border: OutlineInputBorder(),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.primary),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: AppColors.highlight,
-                            width: 2,
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: _submitForm,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.black,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: const Text('Add Service'),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.black,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    side: const BorderSide(color: Colors.black),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: const Text('Cancel'),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        filled: true,
-                        fillColor: AppColors.background,
-                      ),
-                      style: const TextStyle(color: AppColors.text),
-                      keyboardType: TextInputType.number,
-                      onSaved:
-                          (value) =>
-                              _hourlyRate =
-                                  double.tryParse(value ?? '0') ?? 0.0,
-                      validator:
-                          (value) =>
-                              value!.isEmpty
-                                  ? 'Please enter an hourly rate'
-                                  : null,
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.background,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: _submitForm,
-                        child: const Text(
-                          'Add Service',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
               );
             },
