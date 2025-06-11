@@ -22,7 +22,6 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
   @override
   void initState() {
     super.initState();
-    // Parse the date from Firestore Timestamp, DateTime, or String
     final dateField = widget.appointment['date'];
     if (dateField is Timestamp) {
       _selectedDate = dateField.toDate();
@@ -77,162 +76,244 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
   Future<void> _submit() async {
     if (_formKey.currentState!.validate() && _selectedDate != null) {
       await AppointmentService.editAppointment(widget.appointment['id'], {
-        'date': _selectedDate, // Store as DateTime (Firestore will save as Timestamp)
+        'date': _selectedDate,
         'startTime': _selectedStartTime,
         'endTime': _selectedEndTime,
         'notes': _notesController.text,
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Appointment updated')),
-      );
-      Navigator.pop(context);
-    }
-  }
 
-  Future<void> _delete() async {
-    await AppointmentService.deleteAppointment(widget.appointment['id']);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Appointment deleted')),
-    );
-    Navigator.pop(context);
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.check_circle, size: 60, color: Colors.green),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Changes Saved!',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context); // close dialog
+                            Navigator.pop(context); // go back to previous screen
+                            // Navigate to active bookings if needed
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text('View Active Bookings', style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(context); // close dialog
+                            Navigator.pop(context); // go back
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: const BorderSide(color: Colors.black),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text('Go Back Home', style: TextStyle(color: Colors.black)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Edit Appointment'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: _delete,
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              GestureDetector(
-                onTap: () => _pickDate(context),
-                child: AbsorbPointer(
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Date',
-                      labelStyle: TextStyle(color: AppColors.text),
-                    ),
-                    controller: TextEditingController(
-                      text: _selectedDate == null
-                          ? ''
-                          : "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}",
-                    ),
-                    style: const TextStyle(color: AppColors.text),
-                    validator: (_) =>
-                        _selectedDate == null ? 'Select a date' : null,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
+      backgroundColor: const Color(0xFFFDFBF9),
+      body: SafeArea(
+        child: Center(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(32),
+            ),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                shrinkWrap: true,
                 children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedStartTime,
-                      decoration: const InputDecoration(
-                        labelText: 'Start Time',
-                        labelStyle: TextStyle(color: AppColors.text),
-                      ),
-                      items: _timeSlots
-                          .map((time) => DropdownMenuItem(
-                                value: time,
-                                child: Text(time, style: const TextStyle(color: AppColors.text)),
-                              ))
-                          .toList(),
-                      onChanged: (value) => setState(() => _selectedStartTime = value),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, size: 28),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedEndTime,
-                      decoration: const InputDecoration(
-                        labelText: 'End Time',
-                        labelStyle: TextStyle(color: AppColors.text),
-                      ),
-                      items: _timeSlots
-                          .map((time) => DropdownMenuItem(
-                                value: time,
-                                child: Text(time, style: const TextStyle(color: AppColors.text)),
-                              ))
-                          .toList(),
-                      onChanged: (value) => setState(() => _selectedEndTime = value),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Notes',
-                  labelStyle: TextStyle(color: AppColors.text),
-                ),
-                maxLines: 3,
-                style: const TextStyle(color: AppColors.text),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.highlight,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Save Changes'),
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.cancel, color: Colors.white),
-                label: const Text('Cancel Appointment'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: () async {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Cancel Appointment'),
-                      content: const Text('Are you sure you want to cancel this appointment?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('No'),
+                  const SizedBox(height: 8),
+                  const Center(
+                    child: Column(
+                      children: [
+                        Text(
+                          'Edit Appointment',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Yes'),
+                        SizedBox(height: 4),
+                        Text(
+                          'Please fill up the form to confirm your\nbooking with us',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                       ],
                     ),
-                  );
-                  if (confirm == true) {
-                    await AppointmentService.deleteAppointment(widget.appointment['id']);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Appointment cancelled')),
-                    );
-                    Navigator.pop(context);
-                  }
-                },
+                  ),
+                  const SizedBox(height: 24),
+                  GestureDetector(
+                    onTap: () => _pickDate(context),
+                    child: AbsorbPointer(
+                      child: TextFormField(
+                        controller: TextEditingController(
+                          text: _selectedDate == null
+                              ? ''
+                              : "${_selectedDate!.day} ${_monthName(_selectedDate!.month)}, ${_selectedDate!.year}",
+                        ),
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.calendar_today),
+                          hintText: 'Date',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (_) =>
+                            _selectedDate == null ? 'Select a date' : null,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedStartTime,
+                          decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.access_time),
+                            hintText: 'Start Time',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _timeSlots
+                              .map((time) => DropdownMenuItem(
+                                    value: time,
+                                    child: Text(time),
+                                  ))
+                              .toList(),
+                          onChanged: (value) => setState(() => _selectedStartTime = value),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedEndTime,
+                          decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.access_time_outlined),
+                            hintText: 'End Time',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _timeSlots
+                              .map((time) => DropdownMenuItem(
+                                    value: time,
+                                    child: Text(time),
+                                  ))
+                              .toList(),
+                          onChanged: (value) => setState(() => _selectedEndTime = value),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _notesController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.note_alt_outlined),
+                      hintText: 'I need support to fix my electrical sockets',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Submit',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            side: const BorderSide(color: Colors.black),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  String _monthName(int month) {
+    const months = [
+      '', 'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return months[month];
   }
 }

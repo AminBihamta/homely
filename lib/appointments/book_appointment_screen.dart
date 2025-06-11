@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/appointment_service.dart';
-import '../theme/colors.dart'; // update this path based on your structure
+import '../theme/colors.dart';
 
 class BookAppointmentPage extends StatefulWidget {
   final String serviceId;
@@ -25,14 +25,16 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
   String? _selectedStartTime;
   String? _selectedEndTime;
 
-  // Generate time slots from 5am to 10pm, only allowing future times for today
   List<String> _generateTimeSlots(DateTime date) {
     final now = DateTime.now();
     final slots = <String>[];
     for (int hour = 5; hour <= 22; hour++) {
       final slotTime = DateTime(date.year, date.month, date.day, hour);
       if (date.isAfter(DateTime(now.year, now.month, now.day)) ||
-          (date.year == now.year && date.month == now.month && date.day == now.day && slotTime.isAfter(now))) {
+          (date.year == now.year &&
+              date.month == now.month &&
+              date.day == now.day &&
+              slotTime.isAfter(now))) {
         final formatted = TimeOfDay(hour: hour, minute: 0).format(context);
         slots.add(formatted);
       }
@@ -68,15 +70,74 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
         'serviceId': widget.serviceId,
         'providerId': widget.providerId,
         'serviceName': widget.serviceName,
-        'date': _selectedDate, // Store as DateTime
+        'date': _selectedDate,
         'startTime': _selectedStartTime,
         'endTime': _selectedEndTime,
         'notes': _notesController.text,
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Appointment booked')),
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.check_circle, size: 60, color: Colors.green),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Booking Successful!',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context); // close dialog
+                            Navigator.pop(context); // go back to previous screen
+                            // Navigate to active bookings if needed
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text('View Active Bookings', style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(context); // close dialog
+                            Navigator.pop(context); // go back
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: const BorderSide(color: Colors.black),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text('Go Back Home', style: TextStyle(color: Colors.black)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       );
-      Navigator.pop(context);
     }
   }
 
@@ -84,97 +145,128 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Book Appointment'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              GestureDetector(
-                onTap: () => _pickDate(context),
-                child: AbsorbPointer(
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Date',
-                      labelStyle: TextStyle(color: AppColors.text),
-                    ),
-                    controller: TextEditingController(
-                      text: _selectedDate == null
-                          ? ''
-                          : "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}",
-                    ),
-                    style: const TextStyle(color: AppColors.text),
-                    validator: (_) =>
-                        _selectedDate == null ? 'Select a date' : null,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedStartTime,
-                      decoration: const InputDecoration(
-                        labelText: 'Start Time',
-                        labelStyle: TextStyle(color: AppColors.text),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      items: _timeSlots
-                          .map((time) => DropdownMenuItem(
-                                value: time,
-                                child: Text(time, style: const TextStyle(color: AppColors.text)),
-                              ))
-                          .toList(),
-                      onChanged: (value) => setState(() => _selectedStartTime = value),
-                      validator: (value) => value == null ? 'Select a start time' : null,
+                      child: const Icon(Icons.arrow_back, color: Colors.white),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedEndTime,
-                      decoration: const InputDecoration(
-                        labelText: 'End Time',
-                        labelStyle: TextStyle(color: AppColors.text),
+                ),
+                const SizedBox(height: 24),
+                const Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        "Book An Appointment",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
-                      items: _timeSlots
-                          .map((time) => DropdownMenuItem(
-                                value: time,
-                                child: Text(time, style: const TextStyle(color: AppColors.text)),
-                              ))
-                          .toList(),
-                      onChanged: (value) => setState(() => _selectedEndTime = value),
-                      validator: (value) => value == null ? 'Select end time' : null,
+                      SizedBox(height: 4),
+                      Text(
+                        "Please fill up the form to confirm your booking with us",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 28),
+                GestureDetector(
+                  onTap: () => _pickDate(context),
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      controller: TextEditingController(
+                        text: _selectedDate == null
+                            ? ''
+                            : "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}",
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Date',
+                        prefixIcon: const Icon(Icons.calendar_today),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      validator: (_) => _selectedDate == null ? 'Select a date' : null,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Notes',
-                  labelStyle: TextStyle(color: AppColors.text),
                 ),
-                maxLines: 3,
-                style: const TextStyle(color: AppColors.text),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.highlight,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                const SizedBox(height: 16),
+                const Row(
+                  children: [
+                    Text("From", style: TextStyle(fontWeight: FontWeight.w500)),
+                  ],
                 ),
-                child: const Text('Submit'),
-              ),
-            ],
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: _selectedStartTime,
+                  decoration: InputDecoration(
+                    hintText: 'Start Time',
+                    prefixIcon: const Icon(Icons.access_time),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  items: _timeSlots
+                      .map((time) => DropdownMenuItem(value: time, child: Text(time)))
+                      .toList(),
+                  onChanged: (value) => setState(() => _selectedStartTime = value),
+                  validator: (value) => value == null ? 'Select a start time' : null,
+                ),
+                const SizedBox(height: 16),
+                const Row(
+                  children: [
+                    Text("To", style: TextStyle(fontWeight: FontWeight.w500)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: _selectedEndTime,
+                  decoration: InputDecoration(
+                    hintText: 'End Time',
+                    prefixIcon: const Icon(Icons.access_time),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  items: _timeSlots
+                      .map((time) => DropdownMenuItem(value: time, child: Text(time)))
+                      .toList(),
+                  onChanged: (value) => setState(() => _selectedEndTime = value),
+                  validator: (value) => value == null ? 'Select end time' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _notesController,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    hintText: 'Additional Notes',
+                    prefixIcon: const Icon(Icons.note_alt_outlined),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Submit', style: TextStyle(fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
           ),
         ),
       ),
