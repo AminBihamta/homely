@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/appointment_service.dart';
 import '../theme/colors.dart';
+import 'current_appointments_screen.dart';
 
 class BookAppointmentPage extends StatefulWidget {
   final String serviceId;
@@ -97,6 +98,84 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
     }
   }
 
+  Future<void> _pickTime(BuildContext context, {required bool isStart}) async {
+    final initialTime = TimeOfDay.now();
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: accentBrown, // Header background and selected time
+              onPrimary: backgroundLight, // Header text color
+              onSurface: primaryDark, // Time text color
+              surface: backgroundLight, // Picker background
+              background: backgroundLight,
+            ),
+            textTheme: const TextTheme(
+              titleLarge: TextStyle(color: primaryDark),
+              bodyLarge: TextStyle(color: primaryDark),
+              bodyMedium: TextStyle(color: primaryDark),
+              labelLarge: TextStyle(color: primaryDark),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: accentBrown,
+                textStyle: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            dialogBackgroundColor: backgroundLight,
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStart) {
+          _selectedStartTime = picked.format(context);
+          // Reset end time if it's before the new start time
+          if (_selectedEndTime != null &&
+              _selectedDate != null &&
+              _parseTime(_selectedEndTime!, _selectedDate!).compareTo(
+                    _parseTime(_selectedStartTime!, _selectedDate!),
+                  ) <=
+                  0) {
+            _selectedEndTime = null;
+          }
+        } else {
+          _selectedEndTime = picked.format(context);
+        }
+      });
+    }
+  }
+
+  DateTime _parseTime(String time, DateTime date) {
+    // Parse a formatted time string (e.g., '10:00 AM') to DateTime
+    final timeOfDay = _parseTimeOfDay(time);
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      timeOfDay.hour,
+      timeOfDay.minute,
+    );
+  }
+
+  TimeOfDay _parseTimeOfDay(String time) {
+    // Handles both 24h and 12h formats
+    final parts = time.split(' ');
+    final hm = parts[0].split(':');
+    int hour = int.parse(hm[0]);
+    int minute = int.parse(hm[1]);
+    if (parts.length > 1 && parts[1].toLowerCase() == 'pm' && hour < 12)
+      hour += 12;
+    if (parts.length > 1 && parts[1].toLowerCase() == 'am' && hour == 12)
+      hour = 0;
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
   Future<void> _submit() async {
     if (_formKey.currentState!.validate() && _selectedDate != null) {
       await AppointmentService.addAppointment({
@@ -137,44 +216,67 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context); // close dialog
-                            Navigator.pop(
-                              context,
-                            ); // go back to previous screen
-                            // Navigate to active bookings if needed
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryDark,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context); // close dialog
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => const CurrentAppointmentsPage(),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryDark,
+                              foregroundColor: backgroundLight,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
                             ),
-                          ),
-                          child: const Text(
-                            'View Active Bookings',
-                            style: TextStyle(color: backgroundLight),
+                            child: const Text(
+                              'Active Bookings',
+                              style: TextStyle(
+                                color: backgroundLight,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.pop(context); // close dialog
-                            Navigator.pop(context); // go back
-                          },
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            side: const BorderSide(color: primaryDark),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          height: 48,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pop(context); // close dialog
+                              Navigator.pop(context); // go back
+                            },
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: const BorderSide(
+                                color: primaryDark,
+                                width: 2,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              backgroundColor: Colors.transparent,
                             ),
-                          ),
-                          child: const Text(
-                            'Go Back Home',
-                            style: TextStyle(color: primaryDark),
+                            child: const Text(
+                              'Go Back Home',
+                              style: TextStyle(
+                                color: primaryDark,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -284,123 +386,98 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedStartTime,
-                        decoration: InputDecoration(
-                          hintText: 'Start Time',
-                          hintStyle: const TextStyle(color: secondaryGreen),
-                          prefixIcon: const Icon(
-                            Icons.access_time,
-                            color: accentBrown,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: secondaryGreen),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: secondaryGreen),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: accentBrown,
-                              width: 2,
+                      child: GestureDetector(
+                        onTap: () => _pickTime(context, isStart: true),
+                        child: AbsorbPointer(
+                          child: TextFormField(
+                            controller: TextEditingController(
+                              text: _selectedStartTime ?? '',
                             ),
+                            decoration: InputDecoration(
+                              hintText: 'Start Time',
+                              hintStyle: const TextStyle(color: secondaryGreen),
+                              prefixIcon: const Icon(
+                                Icons.access_time,
+                                color: accentBrown,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: secondaryGreen,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: secondaryGreen,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: accentBrown,
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: backgroundLight,
+                            ),
+                            style: const TextStyle(color: primaryDark),
+                            validator:
+                                (_) =>
+                                    _selectedStartTime == null
+                                        ? 'Select a start time'
+                                        : null,
                           ),
-                          filled: true,
-                          fillColor: backgroundLight,
                         ),
-                        dropdownColor: backgroundLight,
-                        style: const TextStyle(color: primaryDark),
-                        items:
-                            _timeSlots
-                                .map(
-                                  (time) => DropdownMenuItem(
-                                    value: time,
-                                    child: Text(
-                                      time,
-                                      style: const TextStyle(
-                                        color: primaryDark,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedStartTime = value;
-                            // Reset end time if it's before the new start time
-                            if (_selectedEndTime != null &&
-                                _timeSlots.indexOf(_selectedEndTime!) <=
-                                    _timeSlots.indexOf(value!)) {
-                              _selectedEndTime = null;
-                            }
-                          });
-                        },
-                        validator:
-                            (value) =>
-                                value == null ? 'Select a start time' : null,
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedEndTime,
-                        decoration: InputDecoration(
-                          hintText: 'End Time',
-                          hintStyle: const TextStyle(color: secondaryGreen),
-                          prefixIcon: const Icon(
-                            Icons.access_time,
-                            color: accentBrown,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: secondaryGreen),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: secondaryGreen),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: accentBrown,
-                              width: 2,
+                      child: GestureDetector(
+                        onTap: () => _pickTime(context, isStart: false),
+                        child: AbsorbPointer(
+                          child: TextFormField(
+                            controller: TextEditingController(
+                              text: _selectedEndTime ?? '',
                             ),
+                            decoration: InputDecoration(
+                              hintText: 'End Time',
+                              hintStyle: const TextStyle(color: secondaryGreen),
+                              prefixIcon: const Icon(
+                                Icons.access_time,
+                                color: accentBrown,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: secondaryGreen,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: secondaryGreen,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: accentBrown,
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: backgroundLight,
+                            ),
+                            style: const TextStyle(color: primaryDark),
+                            validator:
+                                (_) =>
+                                    _selectedEndTime == null
+                                        ? 'Select end time'
+                                        : null,
                           ),
-                          filled: true,
-                          fillColor: backgroundLight,
                         ),
-                        dropdownColor: backgroundLight,
-                        style: const TextStyle(color: primaryDark),
-                        items:
-                            _selectedStartTime == null
-                                ? []
-                                : _timeSlots
-                                    .where(
-                                      (time) =>
-                                          _timeSlots.indexOf(time) >
-                                          _timeSlots.indexOf(
-                                            _selectedStartTime!,
-                                          ),
-                                    )
-                                    .map(
-                                      (time) => DropdownMenuItem(
-                                        value: time,
-                                        child: Text(
-                                          time,
-                                          style: const TextStyle(
-                                            color: primaryDark,
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                        onChanged:
-                            (value) => setState(() => _selectedEndTime = value),
-                        validator:
-                            (value) => value == null ? 'Select end time' : null,
                       ),
                     ),
                   ],

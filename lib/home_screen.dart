@@ -6,6 +6,7 @@ import '../screens/login_screen.dart';
 import 'theme/colors.dart';
 import '../appointments/book_appointment_screen.dart';
 import 'widgets/homely_scaffold.dart';
+import '../serviceprovider/service_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -270,10 +271,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder:
-                                      (_) => BookAppointmentPage(
-                                        serviceId: serviceId,
-                                        providerId: providerId,
+                                      (_) => ServiceDetailsScreen(
                                         serviceName: data['name'] ?? '',
+                                        companyName: data['companyName'] ?? '',
+                                        rating: data['rating'] ?? 4,
+                                        totalReviews:
+                                            data['totalReviews'] ?? 129,
                                       ),
                                 ),
                               );
