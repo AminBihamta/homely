@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
 import '../services/appointment_service.dart';
-import '../appointments/edit_appointment_screen.dart';
+import 'edit_appointment_screen.dart';
 import '../theme/colors.dart';
 
 class RecentAppointmentsPage extends StatelessWidget {
   const RecentAppointmentsPage({super.key});
+
+  bool _isPastAppointment(Map<String, dynamic> appt) {
+    try {
+      final today = DateTime.now();
+      final date = DateTime.parse(appt['date']);
+      return date.isBefore(today);
+    } catch (_) {
+      return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Recent Appointments'),
+        title: const Text('Past Appointments'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -22,21 +32,23 @@ class RecentAppointmentsPage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final appointments = snapshot.data ?? [];
+          final allAppointments = snapshot.data ?? [];
+          final pastAppointments =
+              allAppointments.where(_isPastAppointment).toList();
 
-          if (appointments.isEmpty) {
+          if (pastAppointments.isEmpty) {
             return const Center(
               child: Text(
-                'No recent appointments',
+                'No past appointments',
                 style: TextStyle(color: AppColors.text),
               ),
             );
           }
 
           return ListView.builder(
-            itemCount: appointments.length,
+            itemCount: pastAppointments.length,
             itemBuilder: (context, index) {
-              final appt = appointments[index];
+              final appt = pastAppointments[index];
               return Card(
                 color: Colors.white,
                 margin: const EdgeInsets.all(12),
