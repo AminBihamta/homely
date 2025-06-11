@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../screens/login_screen.dart';
 import 'theme/colors.dart';
 import '../appointments/book_appointment_screen.dart';
+import 'widgets/homely_scaffold.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -55,36 +56,35 @@ class _HomeScreenState extends State<HomeScreen> {
     data['address'] = data['address'] ?? '';
     return data;
   }
+///commented out old navigation between screens
+  // void _onNavBarTap(int index) {
+  //   setState(() {
+  //    // _selectedIndex = index;
+  //   });
+  //   if (index == 2) {
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(builder: (_) => const CurrentAppointmentsPage()),
+  //     );
+  //   } else if (index == 3) {
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(builder: (_) => const RecentAppointmentsPage()),
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        title: const Text(
-          "Homely",
-          style: TextStyle(color: AppColors.background),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: AppColors.highlight),
-            onPressed: () => logout(context),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        selectedItemColor: AppColors.highlight,
-        unselectedItemColor: AppColors.primary,
-        backgroundColor: AppColors.background,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: ''),
-        ],
-      ),
+    return HomelyScaffold(
+      selectedIndex: 0,
+      onLogout: () {
+        AuthService.signOut();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      },
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -92,42 +92,6 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FutureBuilder<Map<String, dynamic>?>(
-                  future: fetchUserData(),
-                  builder: (context, snapshot) {
-                    final userInfo = snapshot.data ?? {};
-                    final address = userInfo['address'] ?? '-';
-                    final name = userInfo['name'] ?? '-';
-
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              'Address\n$address',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.text,
-                              ),
-                            ),
-                          ),
-                          Flexible(
-                            child: Text(
-                              'Welcome, $name!',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.text,
-                              ),
-                              textAlign: TextAlign.end,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
                 const SizedBox(height: 16),
                 const Text(
                   'Find Your Desired Service',

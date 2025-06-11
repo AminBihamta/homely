@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/appointment_service.dart';
 import 'edit_appointment_screen.dart';
 import '../theme/colors.dart';
+import '../widgets/homely_scaffold.dart';
 
 class RecentAppointmentsPage extends StatelessWidget {
   const RecentAppointmentsPage({super.key});
@@ -18,13 +19,8 @@ class RecentAppointmentsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Past Appointments'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
+    return HomelyScaffold(
+      selectedIndex: 3,
       body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: AppointmentService.getUserAppointments(),
         builder: (context, snapshot) {
