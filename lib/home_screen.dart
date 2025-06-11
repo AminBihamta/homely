@@ -272,6 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 MaterialPageRoute(
                                   builder:
                                       (_) => ServiceDetailsScreen(
+                                        serviceId: serviceId,
                                         serviceName: data['name'] ?? '',
                                         companyName: data['companyName'] ?? '',
                                         rating: data['rating'] ?? 4,

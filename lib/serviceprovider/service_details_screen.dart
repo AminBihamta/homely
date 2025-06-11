@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import '../theme/colors.dart';
 import '../appointments/book_appointment_screen.dart'; // Import the BookAppointmentPage
 
 class ServiceDetailsScreen extends StatelessWidget {
+  final String serviceId;
   final String serviceName;
   final String companyName;
   final int rating;
@@ -10,11 +12,30 @@ class ServiceDetailsScreen extends StatelessWidget {
 
   const ServiceDetailsScreen({
     super.key,
+    required this.serviceId,
     required this.serviceName,
     required this.companyName,
     this.rating = 4,
     this.totalReviews = 129,
   });
+
+  Future<String> _fetchProviderName(String serviceId) async {
+    // Fetch the service document to get the user_id
+    final serviceDoc =
+        await FirebaseFirestore.instance
+            .collection('services')
+            .doc(serviceId)
+            .get();
+    final userId = serviceDoc.data()?['user_id'] ?? '';
+    if (userId.isEmpty) return 'Unknown';
+    // Fetch the user's name from the user_data collection (not users)
+    final userDoc =
+        await FirebaseFirestore.instance
+            .collection('user_data')
+            .doc(userId)
+            .get();
+    return userDoc.data()?['name'] ?? 'Unknown';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,24 +137,67 @@ class ServiceDetailsScreen extends StatelessWidget {
                     children: [
                       Icon(Icons.account_circle, color: AppColors.primary),
                       const SizedBox(width: 6),
-                      Text(
-                        'by $companyName',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.text,
-                        ),
+                      FutureBuilder<String>(
+                        future: _fetchProviderName(serviceId),
+                        builder: (context, snapshot) {
+                          final providerName = snapshot.data ?? '...';
+                          return Text(
+                            'by $providerName',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.text,
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
                   const SizedBox(height: 24),
 
-                  // Placeholder for future sections like reviews
-                  Text(
-                    "More Details Coming Soon...",
+                  // Description Section
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Description',
                     style: TextStyle(
-                      fontStyle: FontStyle.italic,
-                      color: Colors.grey[600],
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: AppColors.text,
                     ),
+                  ),
+                  FutureBuilder<DocumentSnapshot>(
+                    future:
+                        FirebaseFirestore.instance
+                            .collection('services')
+                            .doc(serviceId)
+                            .get(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        );
+                      }
+                      if (!snapshot.hasData || !snapshot.data!.exists) {
+                        return const Text(
+                          'No description available.',
+                          style: TextStyle(color: Colors.grey),
+                        );
+                      }
+                      final data =
+                          snapshot.data!.data() as Map<String, dynamic>?;
+                      final description =
+                          data?['description'] ?? 'No description provided.';
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          description,
+                          style: const TextStyle(
+                            color: AppColors.text,
+                            fontSize: 15,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
