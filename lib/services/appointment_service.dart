@@ -9,11 +9,13 @@ class AppointmentService {
   /// Add a new appointment for the current user
   static Future<void> addAppointment(Map<String, dynamic> data) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw Exception('User not logged in');
+    if (user == null) throw Exception('Not logged in');
 
-    await _appointments.add({
+    await FirebaseFirestore.instance.collection('appointments').add({
       ...data,
-      'userId': user.uid,
+      'homeownerId': user.uid,
+      'homeownerEmail': user.email,
+      'status': 'pending',
       'createdAt': FieldValue.serverTimestamp(),
     });
   }

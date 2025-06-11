@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../screens/login_screen.dart';
 import 'theme/colors.dart';
+import '../appointments/book_appointment_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -292,6 +293,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         separatorBuilder: (_, __) => const SizedBox(width: 12),
                         itemBuilder: (context, index) {
                           final data = docs[index].data() as Map<String, dynamic>;
+                          final serviceId = docs[index].id;
+                          final providerId = data['provider_id'] ?? '';
+
                           return Container(
                             width: 180,
                             margin: const EdgeInsets.only(bottom: 4),
@@ -304,6 +308,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.all(8),
                                 child: Column(
+                                  mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Container(
@@ -337,6 +342,33 @@ class _HomeScreenState extends State<HomeScreen> {
                                           Icons.star,
                                           color: AppColors.highlight,
                                           size: 16,
+                                        ),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => BookAppointmentPage(
+                                                serviceId: serviceId,
+                                                providerId: providerId,
+                                                serviceName: data['name'] ?? '',
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          minimumSize: const Size(0, 36),
+                                          padding: EdgeInsets.zero,
+                                        ),
+                                        child: const Text(
+                                          'Request Appointment',
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
                                         ),
                                       ),
                                     ),

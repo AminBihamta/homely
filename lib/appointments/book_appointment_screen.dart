@@ -3,7 +3,16 @@ import '../services/appointment_service.dart';
 import '../theme/colors.dart'; // update this path based on your structure
 
 class BookAppointmentPage extends StatefulWidget {
-  const BookAppointmentPage({super.key});
+  final String serviceId;
+  final String providerId;
+  final String? serviceName;
+
+  const BookAppointmentPage({
+    super.key,
+    required this.serviceId,
+    required this.providerId,
+    this.serviceName,
+  });
 
   @override
   State<BookAppointmentPage> createState() => _BookAppointmentPageState();
@@ -28,6 +37,9 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
       await AppointmentService.addAppointment({
+        'serviceId': widget.serviceId,
+        'providerId': widget.providerId,
+        'serviceName': widget.serviceName,
         'date': _dateController.text,
         'startTime': _selectedStartTime,
         'endTime': _selectedEndTime,
