@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../theme/colors.dart';
-import '../../screens/login_screen.dart';
-import '../../appointments/current_appointments_screen.dart';
-import '../../appointments/past_appointments_screen.dart';
-import '../home_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../screens/login_screen.dart';
+import '../home_screen.dart';
+import '../appointments/current_appointments_screen.dart';
+import '../appointments/pending_appointments_screen.dart';
+import '../appointments/recent_appointments_screen.dart';
+import '../theme/colors.dart';
 
 typedef NavBarBuilder = Widget Function(BuildContext context);
 
@@ -30,7 +31,11 @@ class HomelyScaffold extends StatelessWidget {
   Future<Map<String, dynamic>?> fetchUserData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
-    final doc = await FirebaseFirestore.instance.collection('user_data').doc(user.uid).get();
+    final doc =
+        await FirebaseFirestore.instance
+            .collection('user_data')
+            .doc(user.uid)
+            .get();
     return doc.data();
   }
 
@@ -40,7 +45,11 @@ class HomelyScaffold extends StatelessWidget {
       // Check if user is provider
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final doc = await FirebaseFirestore.instance.collection('user_data').doc(user.uid).get();
+        final doc =
+            await FirebaseFirestore.instance
+                .collection('user_data')
+                .doc(user.uid)
+                .get();
         final data = doc.data() ?? {};
         final isProvider = data['isProvider'] == true;
         if (isProvider) {
@@ -59,10 +68,34 @@ class HomelyScaffold extends StatelessWidget {
         );
       }
     } else if (index == 2) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const CurrentAppointmentsPage()),
-      );
+      // Check if user is provider
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final doc =
+            await FirebaseFirestore.instance
+                .collection('user_data')
+                .doc(user.uid)
+                .get();
+        final data = doc.data() ?? {};
+        final isProvider = data['isProvider'] == true;
+        if (isProvider) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const PendingAppointmentsPage()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const CurrentAppointmentsPage()),
+          );
+        }
+      } else {
+        // fallback: go to current appointments
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const CurrentAppointmentsPage()),
+        );
+      }
     } else if (index == 3) {
       Navigator.pushReplacement(
         context,
@@ -75,27 +108,35 @@ class HomelyScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: appBar ??
+      appBar:
+          appBar ??
           AppBar(
             backgroundColor: AppColors.primary,
             title: const Text(
               "Homely",
               style: TextStyle(color: AppColors.background),
             ),
-            actions: showLogout
-                ? [
-                    IconButton(
-                      icon: const Icon(Icons.logout, color: AppColors.highlight),
-                      onPressed: onLogout ??
-                          () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (_) => const LoginScreen()),
-                            );
-                          },
-                    ),
-                  ]
-                : null,
+            actions:
+                showLogout
+                    ? [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.logout,
+                          color: AppColors.highlight,
+                        ),
+                        onPressed:
+                            onLogout ??
+                            () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const LoginScreen(),
+                                ),
+                              );
+                            },
+                      ),
+                    ]
+                    : null,
           ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,

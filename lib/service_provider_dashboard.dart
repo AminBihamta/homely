@@ -211,8 +211,8 @@ class _ServiceProviderDashboardState extends State<ServiceProviderDashboard> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         onPressed: _addService,
-        child: Icon(Icons.add, color: AppColors.background),
         tooltip: 'Add Service',
+        child: Icon(Icons.add, color: AppColors.background),
       ),
     );
   }

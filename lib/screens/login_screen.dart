@@ -26,12 +26,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final success = await AuthService.signIn(email, password);
     if (!mounted) return;
-    
+
     if (success) {
       // After login, check isProvider from Firestore
       final user = AuthService.currentUser;
       if (user != null) {
-        final doc = await FirebaseFirestore.instance.collection('user_data').doc(user.uid).get();
+        final doc =
+            await FirebaseFirestore.instance
+                .collection('user_data')
+                .doc(user.uid)
+                .get();
         final data = doc.data() ?? {};
         final isProvider = data['isProvider'] == true;
         if (isProvider) {
@@ -66,7 +70,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text("Login", style: TextStyle(color: AppColors.background)),
+        title: const Text(
+          "Login",
+          style: TextStyle(color: AppColors.background),
+        ),
         backgroundColor: AppColors.primary,
         iconTheme: const IconThemeData(color: AppColors.background),
       ),
@@ -76,10 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.only(bottom: 20),
-              child: Image.asset(
-                'assets/homely_logo.png',
-                height: 100,
-              ),
+              child: Image.asset('assets/homely_logo.png', height: 100),
             ),
             TextField(
               controller: emailController,
@@ -133,28 +137,28 @@ class _LoginScreenState extends State<LoginScreen> {
               child: const Text("Login"),
             ),
             TextButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const RegisterScreen()),
-              ),
-              child: const Text("Register"),
+              onPressed:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                  ),
               style: ElevatedButton.styleFrom(
                 foregroundColor: AppColors.primary,
                 minimumSize: const Size.fromHeight(50),
                 textStyle: const TextStyle(fontWeight: FontWeight.bold),
               ),
+              child: const Text("Register"),
             ),
             TextButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ForgotPasswordScreen(),
-                ),
-              ),
+              onPressed:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ForgotPasswordScreen(),
+                    ),
+                  ),
+              style: TextButton.styleFrom(foregroundColor: AppColors.primary),
               child: const Text("Forgot Password?"),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
-              ),
             ),
           ],
         ),

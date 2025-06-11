@@ -21,7 +21,8 @@ class MyApp extends StatelessWidget {
       home: const LoginScreen(),
       debugShowCheckedModeBanner: false,
       routes: {
-        '/serviceProviderDashboard': (context) => const ServiceProviderDashboard(),
+        '/serviceProviderDashboard':
+            (context) => const ServiceProviderDashboard(),
       },
     );
   }
