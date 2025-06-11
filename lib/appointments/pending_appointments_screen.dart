@@ -2,22 +2,35 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../theme/colors.dart';
 import '../widgets/homely_scaffold.dart';
+import 'package:intl/intl.dart';
+import 'appointment_details_provider.dart';
 
 class PendingAppointmentsPage extends StatelessWidget {
   const PendingAppointmentsPage({super.key});
 
   String _formatDate(dynamic dateField) {
     DateTime date;
-    if (dateField is Timestamp) {
-      date = dateField.toDate();
-    } else if (dateField is DateTime) {
-      date = dateField;
-    } else if (dateField is String) {
-      date = DateTime.parse(dateField);
-    } else {
+    try {
+      if (dateField is Timestamp) {
+        date = dateField.toDate();
+      } else if (dateField is DateTime) {
+        date = dateField;
+      } else if (dateField is String) {
+        // Try to parse as ISO first
+        try {
+          date = DateTime.parse(dateField);
+        } catch (_) {
+          // Fallback to known formats like dd/MM/yyyy
+          date = DateFormat('dd/MM/yyyy').parse(dateField);
+        }
+      } else {
+        return '-';
+      }
+
+      return DateFormat('yyyy-MM-dd').format(date);
+    } catch (e) {
       return '-';
     }
-    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
 
   Future<void> _updateAppointmentStatus(
@@ -78,79 +91,92 @@ class PendingAppointmentsPage extends StatelessWidget {
               return Card(
                 color: Colors.white,
                 margin: const EdgeInsets.all(12),
-                child: ListTile(
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${_formatDate(appt['date'])} — ${appt['startTime']} to ${appt['endTime']}',
-                          style: const TextStyle(color: AppColors.text),
-                        ),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (_) =>
+                                AppointmentDetailsProvider(appointment: appt),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          'Pending',
-                          style: TextStyle(
-                            color: Colors.orange,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(4),
+                  child: ListTile(
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${_formatDate(appt['date'])} — ${appt['startTime']} to ${appt['endTime']}',
+                            style: const TextStyle(color: AppColors.text),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      Text(
-                        'Client: ${appt['homeownerEmail'] ?? 'Unknown'}',
-                        style: const TextStyle(color: AppColors.text),
-                      ),
-                      if (appt['notes'] != null &&
-                          appt['notes'].toString().isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Text(
+                            'Pending',
+                            style: TextStyle(
+                              color: Colors.orange,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
                         Text(
-                          'Notes: ${appt['notes']}',
+                          'Client: ${appt['homeownerEmail'] ?? 'Unknown'}',
                           style: const TextStyle(color: AppColors.text),
                         ),
-                    ],
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.check_circle,
-                          color: Colors.green,
+                        if (appt['notes'] != null &&
+                            appt['notes'].toString().isNotEmpty)
+                          Text(
+                            'Notes: ${appt['notes']}',
+                            style: const TextStyle(color: AppColors.text),
+                          ),
+                      ],
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                          ),
+                          tooltip: 'Accept Appointment',
+                          onPressed:
+                              () => _updateAppointmentStatus(
+                                context,
+                                doc.id,
+                                'accepted',
+                              ),
                         ),
-                        tooltip: 'Accept Appointment',
-                        onPressed:
-                            () => _updateAppointmentStatus(
-                              context,
-                              doc.id,
-                              'accepted',
-                            ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.cancel, color: Colors.red),
-                        tooltip: 'Reject Appointment',
-                        onPressed:
-                            () => _updateAppointmentStatus(
-                              context,
-                              doc.id,
-                              'cancelled',
-                            ),
-                      ),
-                    ],
+                        IconButton(
+                          icon: const Icon(Icons.cancel, color: Colors.red),
+                          tooltip: 'Reject Appointment',
+                          onPressed:
+                              () => _updateAppointmentStatus(
+                                context,
+                                doc.id,
+                                'cancelled',
+                              ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
