@@ -103,6 +103,7 @@ class CurrentAppointmentsPage extends StatelessWidget {
                 final serviceName = appt['serviceName'] ?? '';
                 final displayStatus = _getDisplayStatus(status);
                 final statusColor = _getStatusColor(status);
+                final isEditable = status.toLowerCase() != 'accepted';
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16),
@@ -191,37 +192,36 @@ class CurrentAppointmentsPage extends StatelessWidget {
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Edit Button
-                                Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF5F5F5),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: IconButton(
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      color: Color(0xFF8B4513), // Brown color
-                                      size: 18,
+                                // Edit Button (only show if not accepted)
+                                if (status.toLowerCase() != 'accepted')
+                                  Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF5F5F5),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (_) => EditAppointmentPage(
-                                                appointment: appt,
-                                              ),
-                                        ),
-                                      );
-                                    },
+                                    child: IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        color: Color(0xFF8B4513), // Brown color
+                                        size: 18,
+                                      ),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (_) => EditAppointmentPage(
+                                                  appointment: appt,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                      tooltip: 'Edit appointment',
+                                    ),
                                   ),
-                                ),
-
-                                const SizedBox(width: 8),
-
-                                // Cancel Button
+                                // Cancel Button (always shown)
                                 Container(
                                   width: 36,
                                   height: 36,

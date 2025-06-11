@@ -165,6 +165,7 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
+            backgroundColor: const Color(0xFFFDFBF9), // App background color
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
@@ -196,7 +197,7 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
                             ),
                           ),
                           child: const Text(
-                            'View Active Bookings',
+                            'Active Bookings',
                             style: TextStyle(color: Colors.white),
                           ),
                         ),
