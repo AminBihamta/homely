@@ -15,6 +15,7 @@ class HomelyScaffold extends StatelessWidget {
   final bool showLogout;
   final VoidCallback? onLogout;
   final PreferredSizeWidget? appBar;
+  final Widget? floatingActionButton;
 
   const HomelyScaffold({
     super.key,
@@ -23,6 +24,7 @@ class HomelyScaffold extends StatelessWidget {
     this.showLogout = true,
     this.onLogout,
     this.appBar,
+    this.floatingActionButton,
   });
 
   Future<Map<String, dynamic>?> fetchUserData() async {
@@ -32,13 +34,30 @@ class HomelyScaffold extends StatelessWidget {
     return doc.data();
   }
 
-  void _onNavBarTap(BuildContext context, int index) {
+  void _onNavBarTap(BuildContext context, int index) async {
     if (index == selectedIndex) return;
     if (index == 0) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      // Check if user is provider
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance.collection('user_data').doc(user.uid).get();
+        final data = doc.data() ?? {};
+        final isProvider = data['isProvider'] == true;
+        if (isProvider) {
+          Navigator.pushReplacementNamed(context, '/serviceProviderDashboard');
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
+      } else {
+        // fallback: go to home
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
     } else if (index == 2) {
       Navigator.pushReplacement(
         context,
@@ -91,6 +110,7 @@ class HomelyScaffold extends StatelessWidget {
           BottomNavigationBarItem(icon: Icon(Icons.history), label: ''),
         ],
       ),
+      floatingActionButton: floatingActionButton,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

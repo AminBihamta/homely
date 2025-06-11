@@ -7,6 +7,7 @@ import '../serviceprovider/service_form.dart';
 import '../screens/login_screen.dart';
 import '../services/auth_service.dart';
 import 'theme/colors.dart';
+import 'widgets/homely_scaffold.dart';
 
 class ServiceProviderDashboard extends StatefulWidget {
   const ServiceProviderDashboard({super.key});
@@ -99,18 +100,19 @@ class _ServiceProviderDashboardState extends State<ServiceProviderDashboard> {
   @override
   Widget build(BuildContext context) {
     if (userId == null) {
-      return Scaffold(
-        backgroundColor: AppColors.background,
+      return HomelyScaffold(
+        selectedIndex: 0,
         body: Center(
           child: Text(
             'User not logged in.',
             style: TextStyle(color: AppColors.text),
           ),
         ),
+        showLogout: false,
       );
     }
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return HomelyScaffold(
+      selectedIndex: 0, // Home/services tab for provider
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         title: Text(
