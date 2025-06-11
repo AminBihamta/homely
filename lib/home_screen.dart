@@ -46,7 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final uid = user.uid;
 
-    final doc = await FirebaseFirestore.instance.collection('user_data').doc(uid).get();
+    final doc =
+        await FirebaseFirestore.instance.collection('user_data').doc(uid).get();
 
     if (!doc.exists) return null;
 
@@ -56,7 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
     data['address'] = data['address'] ?? '';
     return data;
   }
-///commented out old navigation between screens
+
+  ///commented out old navigation between screens
   // void _onNavBarTap(int index) {
   //   setState(() {
   //    // _selectedIndex = index;
@@ -110,7 +112,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icons.search,
                       color: AppColors.primary,
                     ),
-                    suffixIcon: const Icon(Icons.tune, color: AppColors.primary),
+                    suffixIcon: const Icon(
+                      Icons.tune,
+                      color: AppColors.primary,
+                    ),
                     filled: true,
                     fillColor: AppColors.background,
                     border: OutlineInputBorder(
@@ -223,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
-                  height: 200, // Constrain the horizontal list height
+                  height: 240, // Increased height to prevent overflow
                   child: StreamBuilder<QuerySnapshot>(
                     stream:
                         FirebaseFirestore.instance
@@ -250,93 +255,123 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       final docs = snapshot.data!.docs;
 
-                      return ListView.separated(
+                      return ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
                         itemCount: docs.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 12),
                         itemBuilder: (context, index) {
-                          final data = docs[index].data() as Map<String, dynamic>;
+                          final data =
+                              docs[index].data() as Map<String, dynamic>;
                           final serviceId = docs[index].id;
                           final providerId = data['provider_id'] ?? '';
 
-                          return Container(
-                            width: 180,
-                            margin: const EdgeInsets.only(bottom: 4),
-                            child: Card(
-                              color: AppColors.background,
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      height: 90,
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        color: AppColors.primary.withOpacity(0.1),
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => BookAppointmentPage(
+                                        serviceId: serviceId,
+                                        providerId: providerId,
+                                        serviceName: data['name'] ?? '',
                                       ),
-                                      child: const Icon(
-                                        Icons.image,
-                                        size: 40,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      data['name'] ?? 'Service Name',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.text,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: List.generate(
-                                        5,
-                                        (_) => const Icon(
-                                          Icons.star,
-                                          color: AppColors.highlight,
-                                          size: 16,
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: 180,
+                              margin: const EdgeInsets.only(
+                                right: 12,
+                                bottom: 2,
+                                top: 2,
+                              ), // reduced vertical margin
+                              child: Card(
+                                color: AppColors.background,
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    8,
+                                    8,
+                                    8,
+                                    4,
+                                  ), // less bottom padding
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        height: 90,
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          color: AppColors.primary.withOpacity(
+                                            0.1,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.image,
+                                          size: 40,
+                                          color: AppColors.primary,
                                         ),
                                       ),
-                                    ),
-                                    const Spacer(),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => BookAppointmentPage(
-                                                serviceId: serviceId,
-                                                providerId: providerId,
-                                                serviceName: data['name'] ?? '',
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        data['name'] ?? 'Service Name',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.text,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: List.generate(
+                                          5,
+                                          (_) => const Icon(
+                                            Icons.star,
+                                            color: AppColors.highlight,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder:
+                                                    (_) => BookAppointmentPage(
+                                                      serviceId: serviceId,
+                                                      providerId: providerId,
+                                                      serviceName:
+                                                          data['name'] ?? '',
+                                                    ),
                                               ),
-                                            ),
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          minimumSize: const Size(0, 36),
-                                          padding: EdgeInsets.zero,
-                                        ),
-                                        child: const Text(
-                                          'Request Appointment',
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
+                                            );
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            minimumSize: const Size(0, 36),
+                                            padding: EdgeInsets.zero,
+                                          ),
+                                          child: const Text(
+                                            'Request Appointment',
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),

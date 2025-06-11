@@ -83,30 +83,52 @@ class CurrentAppointmentsPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final appt = upcoming[index];
               final status = (appt['status'] ?? 'to be accepted').toString();
+              final serviceName = appt['serviceName'] ?? '';
               return Card(
                 color: Colors.white,
                 margin: const EdgeInsets.all(12),
                 child: ListTile(
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          '${_formatDate(appt['date'])} — ${appt['startTime']} to ${appt['endTime']}',
-                          style: const TextStyle(color: AppColors.text),
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Icon(Icons.circle, color: _statusColor(status), size: 12),
-                          const SizedBox(width: 4),
-                          Text(
-                            status[0].toUpperCase() + status.substring(1),
-                            style: TextStyle(
-                              color: _statusColor(status),
+                      if (serviceName.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4.0),
+                          child: Text(
+                            serviceName,
+                            style: const TextStyle(
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                              color: AppColors.text,
                             ),
+                          ),
+                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${_formatDate(appt['date'])} — ${appt['startTime']} to ${appt['endTime']}',
+                              style: const TextStyle(color: AppColors.text),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.circle,
+                                color: _statusColor(status),
+                                size: 12,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                status[0].toUpperCase() + status.substring(1),
+                                style: TextStyle(
+                                  color: _statusColor(status),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -121,12 +143,16 @@ class CurrentAppointmentsPage extends StatelessWidget {
                     children: [
                       // (Optional) Edit button for current appointments only
                       IconButton(
-                        icon: const Icon(Icons.edit, color: AppColors.highlight),
+                        icon: const Icon(
+                          Icons.edit,
+                          color: AppColors.highlight,
+                        ),
                         onPressed: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => EditAppointmentPage(appointment: appt),
+                              builder:
+                                  (_) => EditAppointmentPage(appointment: appt),
                             ),
                           );
                         },
@@ -137,25 +163,34 @@ class CurrentAppointmentsPage extends StatelessWidget {
                         onPressed: () async {
                           final confirm = await showDialog<bool>(
                             context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Cancel Appointment'),
-                              content: const Text('Are you sure you want to cancel this appointment?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
-                                  child: const Text('No'),
+                            builder:
+                                (context) => AlertDialog(
+                                  title: const Text('Cancel Appointment'),
+                                  content: const Text(
+                                    'Are you sure you want to cancel this appointment?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed:
+                                          () => Navigator.pop(context, false),
+                                      child: const Text('No'),
+                                    ),
+                                    TextButton(
+                                      onPressed:
+                                          () => Navigator.pop(context, true),
+                                      child: const Text('Yes'),
+                                    ),
+                                  ],
                                 ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Yes'),
-                                ),
-                              ],
-                            ),
                           );
                           if (confirm == true) {
-                            await AppointmentService.deleteAppointment(appt['id']);
+                            await AppointmentService.deleteAppointment(
+                              appt['id'],
+                            );
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Appointment cancelled')),
+                              const SnackBar(
+                                content: Text('Appointment cancelled'),
+                              ),
                             );
                           }
                         },
