@@ -203,44 +203,53 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Row(
+                Row(
                   children: [
-                    Text("From", style: TextStyle(fontWeight: FontWeight.w500)),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedStartTime,
+                        decoration: InputDecoration(
+                          hintText: 'Start Time',
+                          prefixIcon: const Icon(Icons.access_time),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        items: _timeSlots
+                            .map((time) => DropdownMenuItem(value: time, child: Text(time)))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedStartTime = value;
+                            // Reset end time if it's before the new start time
+                            if (_selectedEndTime != null &&
+                                _timeSlots.indexOf(_selectedEndTime!) <= _timeSlots.indexOf(value!)) {
+                              _selectedEndTime = null;
+                            }
+                          });
+                        },
+                        validator: (value) => value == null ? 'Select a start time' : null,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedEndTime,
+                        decoration: InputDecoration(
+                          hintText: 'End Time',
+                          prefixIcon: const Icon(Icons.access_time),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        items: _selectedStartTime == null
+                            ? []
+                            : _timeSlots
+                                .where((time) =>
+                                    _timeSlots.indexOf(time) > _timeSlots.indexOf(_selectedStartTime!))
+                                .map((time) => DropdownMenuItem(value: time, child: Text(time)))
+                                .toList(),
+                        onChanged: (value) => setState(() => _selectedEndTime = value),
+                        validator: (value) => value == null ? 'Select end time' : null,
+                      ),
+                    ),
                   ],
-                ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: _selectedStartTime,
-                  decoration: InputDecoration(
-                    hintText: 'Start Time',
-                    prefixIcon: const Icon(Icons.access_time),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  items: _timeSlots
-                      .map((time) => DropdownMenuItem(value: time, child: Text(time)))
-                      .toList(),
-                  onChanged: (value) => setState(() => _selectedStartTime = value),
-                  validator: (value) => value == null ? 'Select a start time' : null,
-                ),
-                const SizedBox(height: 16),
-                const Row(
-                  children: [
-                    Text("To", style: TextStyle(fontWeight: FontWeight.w500)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: _selectedEndTime,
-                  decoration: InputDecoration(
-                    hintText: 'End Time',
-                    prefixIcon: const Icon(Icons.access_time),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  items: _timeSlots
-                      .map((time) => DropdownMenuItem(value: time, child: Text(time)))
-                      .toList(),
-                  onChanged: (value) => setState(() => _selectedEndTime = value),
-                  validator: (value) => value == null ? 'Select end time' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
