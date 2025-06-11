@@ -32,28 +32,11 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
     } else {
       _selectedDate = null;
     }
-    _notesController = TextEditingController(text: widget.appointment['notes'] ?? '');
+    _notesController = TextEditingController(
+      text: widget.appointment['notes'] ?? '',
+    );
     _selectedStartTime = widget.appointment['startTime'];
     _selectedEndTime = widget.appointment['endTime'];
-  }
-
-  List<String> _generateTimeSlots(DateTime date) {
-    final now = DateTime.now();
-    final slots = <String>[];
-    for (int hour = 5; hour <= 22; hour++) {
-      final slotTime = DateTime(date.year, date.month, date.day, hour);
-      if (date.isAfter(DateTime(now.year, now.month, now.day)) ||
-          (date.year == now.year && date.month == now.month && date.day == now.day && slotTime.isAfter(now))) {
-        final formatted = TimeOfDay(hour: hour, minute: 0).format(context);
-        slots.add(formatted);
-      }
-    }
-    return slots;
-  }
-
-  List<String> get _timeSlots {
-    if (_selectedDate == null) return [];
-    return _generateTimeSlots(_selectedDate!);
   }
 
   Future<void> _pickDate(BuildContext context) async {
@@ -63,6 +46,33 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
       initialDate: _selectedDate ?? now,
       firstDate: now,
       lastDate: now.add(const Duration(days: 365)),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFA27B5C), // accentBrown
+              onPrimary: Color(0xFFFFFEFA), // backgroundLight
+              onSurface: Color(0xFF222222), // text color
+              surface: Color(0xFFFFFEFA), // background
+              background: Color(0xFFFFFEFA),
+            ),
+            textTheme: const TextTheme(
+              titleLarge: TextStyle(color: Color(0xFF222222)),
+              bodyLarge: TextStyle(color: Color(0xFF222222)),
+              bodyMedium: TextStyle(color: Color(0xFF222222)),
+              labelLarge: TextStyle(color: Color(0xFF222222)),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: Color(0xFFA27B5C),
+                textStyle: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            dialogBackgroundColor: Color(0xFFFFFEFA),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       setState(() {
@@ -71,6 +81,71 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
         _selectedEndTime = null;
       });
     }
+  }
+
+  Future<void> _pickTime(BuildContext context, {required bool isStart}) async {
+    final initialTime = TimeOfDay.now();
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFA27B5C), // accentBrown
+              onPrimary: Color(0xFFFFFEFA), // backgroundLight
+              onSurface: Color(0xFF222222), // text color
+              surface: Color(0xFFFFFEFA), // Picker background
+              background: Color(0xFFFFFEFA),
+            ),
+            textTheme: const TextTheme(
+              titleLarge: TextStyle(color: Color(0xFF222222)),
+              bodyLarge: TextStyle(color: Color(0xFF222222)),
+              bodyMedium: TextStyle(color: Color(0xFF222222)),
+              labelLarge: TextStyle(color: Color(0xFF222222)),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: Color(0xFFA27B5C),
+                textStyle: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            dialogBackgroundColor: Color(0xFFFFFEFA),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStart) {
+          _selectedStartTime = picked.format(context);
+          // Reset end time if it's before the new start time
+          if (_selectedEndTime != null &&
+              _selectedDate != null &&
+              _parseTime(_selectedEndTime!, _selectedDate!).compareTo(
+                    _parseTime(_selectedStartTime!, _selectedDate!),
+                  ) <=
+                  0) {
+            _selectedEndTime = null;
+          }
+        } else {
+          _selectedEndTime = picked.format(context);
+        }
+      });
+    }
+  }
+
+  DateTime _parseTime(String time, DateTime date) {
+    final parts = time.split(' ');
+    final hm = parts[0].split(':');
+    int hour = int.parse(hm[0]);
+    int minute = int.parse(hm[1]);
+    if (parts.length > 1 && parts[1].toLowerCase() == 'pm' && hour < 12)
+      hour += 12;
+    if (parts.length > 1 && parts[1].toLowerCase() == 'am' && hour == 12)
+      hour = 0;
+    return DateTime(date.year, date.month, date.day, hour, minute);
   }
 
   Future<void> _submit() async {
@@ -87,7 +162,9 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
         barrierDismissible: false,
         builder: (BuildContext context) {
           return Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
@@ -106,7 +183,9 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
                         child: ElevatedButton(
                           onPressed: () {
                             Navigator.pop(context); // close dialog
-                            Navigator.pop(context); // go back to previous screen
+                            Navigator.pop(
+                              context,
+                            ); // go back to previous screen
                             // Navigate to active bookings if needed
                           },
                           style: ElevatedButton.styleFrom(
@@ -116,7 +195,10 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text('View Active Bookings', style: TextStyle(color: Colors.white)),
+                          child: const Text(
+                            'View Active Bookings',
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -133,7 +215,10 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text('Go Back Home', style: TextStyle(color: Colors.black)),
+                          child: const Text(
+                            'Go Back Home',
+                            style: TextStyle(color: Colors.black),
+                          ),
                         ),
                       ),
                     ],
@@ -198,17 +283,19 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
                     child: AbsorbPointer(
                       child: TextFormField(
                         controller: TextEditingController(
-                          text: _selectedDate == null
-                              ? ''
-                              : "${_selectedDate!.day} ${_monthName(_selectedDate!.month)}, ${_selectedDate!.year}",
+                          text:
+                              _selectedDate == null
+                                  ? ''
+                                  : "${_selectedDate!.day} ${_monthName(_selectedDate!.month)}, ${_selectedDate!.year}",
                         ),
                         decoration: const InputDecoration(
                           prefixIcon: Icon(Icons.calendar_today),
                           hintText: 'Date',
                           border: OutlineInputBorder(),
                         ),
-                        validator: (_) =>
-                            _selectedDate == null ? 'Select a date' : null,
+                        validator:
+                            (_) =>
+                                _selectedDate == null ? 'Select a date' : null,
                       ),
                     ),
                   ),
@@ -216,38 +303,48 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: _selectedStartTime,
-                          decoration: const InputDecoration(
-                            prefixIcon: Icon(Icons.access_time),
-                            hintText: 'Start Time',
-                            border: OutlineInputBorder(),
+                        child: GestureDetector(
+                          onTap: () => _pickTime(context, isStart: true),
+                          child: AbsorbPointer(
+                            child: TextFormField(
+                              controller: TextEditingController(
+                                text: _selectedStartTime ?? '',
+                              ),
+                              decoration: const InputDecoration(
+                                prefixIcon: Icon(Icons.access_time),
+                                hintText: 'Start Time',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator:
+                                  (_) =>
+                                      _selectedStartTime == null
+                                          ? 'Select start time'
+                                          : null,
+                            ),
                           ),
-                          items: _timeSlots
-                              .map((time) => DropdownMenuItem(
-                                    value: time,
-                                    child: Text(time),
-                                  ))
-                              .toList(),
-                          onChanged: (value) => setState(() => _selectedStartTime = value),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: _selectedEndTime,
-                          decoration: const InputDecoration(
-                            prefixIcon: Icon(Icons.access_time_outlined),
-                            hintText: 'End Time',
-                            border: OutlineInputBorder(),
+                        child: GestureDetector(
+                          onTap: () => _pickTime(context, isStart: false),
+                          child: AbsorbPointer(
+                            child: TextFormField(
+                              controller: TextEditingController(
+                                text: _selectedEndTime ?? '',
+                              ),
+                              decoration: const InputDecoration(
+                                prefixIcon: Icon(Icons.access_time_outlined),
+                                hintText: 'End Time',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator:
+                                  (_) =>
+                                      _selectedEndTime == null
+                                          ? 'Select end time'
+                                          : null,
+                            ),
                           ),
-                          items: _timeSlots
-                              .map((time) => DropdownMenuItem(
-                                    value: time,
-                                    child: Text(time),
-                                  ))
-                              .toList(),
-                          onChanged: (value) => setState(() => _selectedEndTime = value),
                         ),
                       ),
                     ],
@@ -311,8 +408,19 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
 
   String _monthName(int month) {
     const months = [
-      '', 'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      '',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return months[month];
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/appointment_service.dart';
 import '../theme/colors.dart';
+import 'current_appointments_screen.dart';
 
 class BookAppointmentPage extends StatefulWidget {
   final String serviceId;
@@ -24,6 +25,12 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
   final TextEditingController _notesController = TextEditingController();
   String? _selectedStartTime;
   String? _selectedEndTime;
+
+  // App color constants
+  static const Color primaryDark = Color(0xFF222222);
+  static const Color secondaryGreen = Color(0xFF3F4F44);
+  static const Color accentBrown = Color(0xFFA27B5C);
+  static const Color backgroundLight = Color(0xFFFFFEFA);
 
   List<String> _generateTimeSlots(DateTime date) {
     final now = DateTime.now();
@@ -54,6 +61,33 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
       initialDate: _selectedDate ?? now,
       firstDate: now,
       lastDate: now.add(const Duration(days: 365)),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: accentBrown, // Header background and selected date
+              onPrimary: backgroundLight, // Header text color
+              onSurface: primaryDark, // Calendar text color
+              surface: backgroundLight, // Calendar background
+              background: backgroundLight, // Picker background
+            ),
+            textTheme: const TextTheme(
+              titleLarge: TextStyle(color: primaryDark),
+              bodyLarge: TextStyle(color: primaryDark),
+              bodyMedium: TextStyle(color: primaryDark),
+              labelLarge: TextStyle(color: primaryDark),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: accentBrown, // Button text color
+                textStyle: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            dialogBackgroundColor: backgroundLight,
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       setState(() {
@@ -62,6 +96,84 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
         _selectedEndTime = null;
       });
     }
+  }
+
+  Future<void> _pickTime(BuildContext context, {required bool isStart}) async {
+    final initialTime = TimeOfDay.now();
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: accentBrown, // Header background and selected time
+              onPrimary: backgroundLight, // Header text color
+              onSurface: primaryDark, // Time text color
+              surface: backgroundLight, // Picker background
+              background: backgroundLight,
+            ),
+            textTheme: const TextTheme(
+              titleLarge: TextStyle(color: primaryDark),
+              bodyLarge: TextStyle(color: primaryDark),
+              bodyMedium: TextStyle(color: primaryDark),
+              labelLarge: TextStyle(color: primaryDark),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: accentBrown,
+                textStyle: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            dialogBackgroundColor: backgroundLight,
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStart) {
+          _selectedStartTime = picked.format(context);
+          // Reset end time if it's before the new start time
+          if (_selectedEndTime != null &&
+              _selectedDate != null &&
+              _parseTime(_selectedEndTime!, _selectedDate!).compareTo(
+                    _parseTime(_selectedStartTime!, _selectedDate!),
+                  ) <=
+                  0) {
+            _selectedEndTime = null;
+          }
+        } else {
+          _selectedEndTime = picked.format(context);
+        }
+      });
+    }
+  }
+
+  DateTime _parseTime(String time, DateTime date) {
+    // Parse a formatted time string (e.g., '10:00 AM') to DateTime
+    final timeOfDay = _parseTimeOfDay(time);
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      timeOfDay.hour,
+      timeOfDay.minute,
+    );
+  }
+
+  TimeOfDay _parseTimeOfDay(String time) {
+    // Handles both 24h and 12h formats
+    final parts = time.split(' ');
+    final hm = parts[0].split(':');
+    int hour = int.parse(hm[0]);
+    int minute = int.parse(hm[1]);
+    if (parts.length > 1 && parts[1].toLowerCase() == 'pm' && hour < 12)
+      hour += 12;
+    if (parts.length > 1 && parts[1].toLowerCase() == 'am' && hour == 12)
+      hour = 0;
+    return TimeOfDay(hour: hour, minute: minute);
   }
 
   Future<void> _submit() async {
@@ -81,53 +193,91 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
         barrierDismissible: false,
         builder: (BuildContext context) {
           return Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            backgroundColor: backgroundLight,
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.check_circle, size: 60, color: Colors.green),
+                  const Icon(Icons.check_circle, size: 60, color: accentBrown),
                   const SizedBox(height: 16),
                   const Text(
                     'Booking Successful!',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: primaryDark,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context); // close dialog
-                            Navigator.pop(context); // go back to previous screen
-                            // Navigate to active bookings if needed
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context); // close dialog
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => const CurrentAppointmentsPage(),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryDark,
+                              foregroundColor: backgroundLight,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              'Active Bookings',
+                              style: TextStyle(
+                                color: backgroundLight,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
-                          child: const Text('View Active Bookings', style: TextStyle(color: Colors.white)),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.pop(context); // close dialog
-                            Navigator.pop(context); // go back
-                          },
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            side: const BorderSide(color: Colors.black),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          height: 48,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pop(context); // close dialog
+                              Navigator.pop(context); // go back
+                            },
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: const BorderSide(
+                                color: primaryDark,
+                                width: 2,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              backgroundColor: Colors.transparent,
+                            ),
+                            child: const Text(
+                              'Go Back Home',
+                              style: TextStyle(
+                                color: primaryDark,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
-                          child: const Text('Go Back Home', style: TextStyle(color: Colors.black)),
                         ),
                       ),
                     ],
@@ -144,7 +294,7 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: backgroundLight,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -159,10 +309,13 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.black,
+                        color: primaryDark,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.arrow_back, color: Colors.white),
+                      child: const Icon(
+                        Icons.arrow_back,
+                        color: backgroundLight,
+                      ),
                     ),
                   ),
                 ),
@@ -172,13 +325,17 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
                     children: [
                       Text(
                         "Book An Appointment",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: primaryDark,
+                        ),
                       ),
                       SizedBox(height: 4),
                       Text(
                         "Please fill up the form to confirm your booking with us",
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, color: Colors.black54),
+                        style: TextStyle(fontSize: 14, color: secondaryGreen),
                       ),
                     ],
                   ),
@@ -189,16 +346,39 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
                   child: AbsorbPointer(
                     child: TextFormField(
                       controller: TextEditingController(
-                        text: _selectedDate == null
-                            ? ''
-                            : "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}",
+                        text:
+                            _selectedDate == null
+                                ? ''
+                                : "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}",
                       ),
                       decoration: InputDecoration(
                         hintText: 'Date',
-                        prefixIcon: const Icon(Icons.calendar_today),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        hintStyle: const TextStyle(color: secondaryGreen),
+                        prefixIcon: const Icon(
+                          Icons.calendar_today,
+                          color: accentBrown,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: secondaryGreen),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: secondaryGreen),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: accentBrown,
+                            width: 2,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: backgroundLight,
                       ),
-                      validator: (_) => _selectedDate == null ? 'Select a date' : null,
+                      style: const TextStyle(color: primaryDark),
+                      validator:
+                          (_) => _selectedDate == null ? 'Select a date' : null,
                     ),
                   ),
                 ),
@@ -206,47 +386,98 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedStartTime,
-                        decoration: InputDecoration(
-                          hintText: 'Start Time',
-                          prefixIcon: const Icon(Icons.access_time),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      child: GestureDetector(
+                        onTap: () => _pickTime(context, isStart: true),
+                        child: AbsorbPointer(
+                          child: TextFormField(
+                            controller: TextEditingController(
+                              text: _selectedStartTime ?? '',
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Start Time',
+                              hintStyle: const TextStyle(color: secondaryGreen),
+                              prefixIcon: const Icon(
+                                Icons.access_time,
+                                color: accentBrown,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: secondaryGreen,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: secondaryGreen,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: accentBrown,
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: backgroundLight,
+                            ),
+                            style: const TextStyle(color: primaryDark),
+                            validator:
+                                (_) =>
+                                    _selectedStartTime == null
+                                        ? 'Select a start time'
+                                        : null,
+                          ),
                         ),
-                        items: _timeSlots
-                            .map((time) => DropdownMenuItem(value: time, child: Text(time)))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedStartTime = value;
-                            // Reset end time if it's before the new start time
-                            if (_selectedEndTime != null &&
-                                _timeSlots.indexOf(_selectedEndTime!) <= _timeSlots.indexOf(value!)) {
-                              _selectedEndTime = null;
-                            }
-                          });
-                        },
-                        validator: (value) => value == null ? 'Select a start time' : null,
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedEndTime,
-                        decoration: InputDecoration(
-                          hintText: 'End Time',
-                          prefixIcon: const Icon(Icons.access_time),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      child: GestureDetector(
+                        onTap: () => _pickTime(context, isStart: false),
+                        child: AbsorbPointer(
+                          child: TextFormField(
+                            controller: TextEditingController(
+                              text: _selectedEndTime ?? '',
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'End Time',
+                              hintStyle: const TextStyle(color: secondaryGreen),
+                              prefixIcon: const Icon(
+                                Icons.access_time,
+                                color: accentBrown,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: secondaryGreen,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: secondaryGreen,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: accentBrown,
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: backgroundLight,
+                            ),
+                            style: const TextStyle(color: primaryDark),
+                            validator:
+                                (_) =>
+                                    _selectedEndTime == null
+                                        ? 'Select end time'
+                                        : null,
+                          ),
                         ),
-                        items: _selectedStartTime == null
-                            ? []
-                            : _timeSlots
-                                .where((time) =>
-                                    _timeSlots.indexOf(time) > _timeSlots.indexOf(_selectedStartTime!))
-                                .map((time) => DropdownMenuItem(value: time, child: Text(time)))
-                                .toList(),
-                        onChanged: (value) => setState(() => _selectedEndTime = value),
-                        validator: (value) => value == null ? 'Select end time' : null,
                       ),
                     ),
                   ],
@@ -257,22 +488,46 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
                   maxLines: 4,
                   decoration: InputDecoration(
                     hintText: 'Additional Notes',
-                    prefixIcon: const Icon(Icons.note_alt_outlined),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    hintStyle: const TextStyle(color: secondaryGreen),
+                    prefixIcon: const Icon(
+                      Icons.note_alt_outlined,
+                      color: accentBrown,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: secondaryGreen),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: secondaryGreen),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: accentBrown,
+                        width: 2,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: backgroundLight,
                   ),
+                  style: const TextStyle(color: primaryDark),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _submit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
+                    backgroundColor: primaryDark,
+                    foregroundColor: backgroundLight,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text('Submit', style: TextStyle(fontWeight: FontWeight.w600)),
+                  child: const Text(
+                    'Submit',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ],
             ),

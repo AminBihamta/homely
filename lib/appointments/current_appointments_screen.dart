@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart'; // <-- Add this line
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../services/appointment_service.dart';
 import '../theme/colors.dart';
@@ -42,16 +42,30 @@ class CurrentAppointmentsPage extends StatelessWidget {
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
 
-  Color _statusColor(String status) {
+  Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'accepted':
-        return Colors.green;
+        return const Color(0xFF4CAF50); // Green
       case 'to be accepted':
-        return Colors.orange;
+      case 'pending':
+        return const Color(0xFF9E9E9E); // Grey
       case 'cancelled':
-        return Colors.red;
+        return const Color(0xFFF44336); // Red
       default:
-        return Colors.grey;
+        return const Color(0xFF9E9E9E); // Grey
+    }
+  }
+
+  String _getDisplayStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'to be accepted':
+        return 'Pending';
+      case 'accepted':
+        return 'Accepted';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return 'Pending';
     }
   }
 
@@ -59,114 +73,257 @@ class CurrentAppointmentsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return HomelyScaffold(
       selectedIndex: 2,
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: AppointmentService.getUserAppointments(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Container(
+        color: const Color(0xFFF5F5F5), // Light grey background
+        child: StreamBuilder<List<Map<String, dynamic>>>(
+          stream: AppointmentService.getUserAppointments(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          final allAppointments = snapshot.data ?? [];
-          final upcoming = allAppointments.where(_isUpcoming).toList();
+            final allAppointments = snapshot.data ?? [];
+            final upcoming = allAppointments.where(_isUpcoming).toList();
 
-          if (upcoming.isEmpty) {
-            return const Center(
-              child: Text(
-                'No upcoming appointments',
-                style: TextStyle(color: AppColors.text),
-              ),
-            );
-          }
+            if (upcoming.isEmpty) {
+              return const Center(
+                child: Text(
+                  'No upcoming appointments',
+                  style: TextStyle(color: AppColors.text, fontSize: 16),
+                ),
+              );
+            }
 
-          return ListView.builder(
-            itemCount: upcoming.length,
-            itemBuilder: (context, index) {
-              final appt = upcoming[index];
-              final status = (appt['status'] ?? 'to be accepted').toString();
-              return Card(
-                color: Colors.white,
-                margin: const EdgeInsets.all(12),
-                child: ListTile(
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${_formatDate(appt['date'])} — ${appt['startTime']} to ${appt['endTime']}',
-                          style: const TextStyle(color: AppColors.text),
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Icon(Icons.circle, color: _statusColor(status), size: 12),
-                          const SizedBox(width: 4),
-                          Text(
-                            status[0].toUpperCase() + status.substring(1),
-                            style: TextStyle(
-                              color: _statusColor(status),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: upcoming.length,
+              itemBuilder: (context, index) {
+                final appt = upcoming[index];
+                final status = (appt['status'] ?? 'to be accepted').toString();
+                final serviceName = appt['serviceName'] ?? '';
+                final displayStatus = _getDisplayStatus(status);
+                final statusColor = _getStatusColor(status);
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  subtitle: Text(
-                    appt['notes'] ?? '',
-                    style: const TextStyle(color: AppColors.text),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // (Optional) Edit button for current appointments only
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: AppColors.highlight),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => EditAppointmentPage(appointment: appt),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Service Name
+                        if (serviceName.isNotEmpty)
+                          Text(
+                            serviceName,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1A1A1A),
                             ),
-                          );
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.cancel, color: Colors.red),
-                        tooltip: 'Cancel Appointment',
-                        onPressed: () async {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Cancel Appointment'),
-                              content: const Text('Are you sure you want to cancel this appointment?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
-                                  child: const Text('No'),
+                          ),
+
+                        const SizedBox(height: 8),
+
+                        // Date and Time
+                        Text(
+                          '${_formatDate(appt['date'])} — ${appt['startTime']} to ${appt['endTime']}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF666666),
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Notes
+                        if (appt['notes'] != null &&
+                            appt['notes'].toString().isNotEmpty)
+                          Text(
+                            appt['notes'].toString(),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF666666),
+                            ),
+                          ),
+
+                        const SizedBox(height: 12),
+
+                        // Status and Action Buttons Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Status
+                            Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: statusColor,
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Yes'),
+                                const SizedBox(width: 6),
+                                Text(
+                                  displayStatus,
+                                  style: TextStyle(
+                                    color: statusColor,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ],
                             ),
-                          );
-                          if (confirm == true) {
-                            await AppointmentService.deleteAppointment(appt['id']);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Appointment cancelled')),
-                            );
-                          }
-                        },
-                      ),
-                    ],
+
+                            // Action Buttons
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Edit Button
+                                Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF5F5F5),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: IconButton(
+                                    icon: const Icon(
+                                      Icons.edit,
+                                      color: Color(0xFF8B4513), // Brown color
+                                      size: 18,
+                                    ),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) => EditAppointmentPage(
+                                                appointment: appt,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+
+                                const SizedBox(width: 8),
+
+                                // Cancel Button
+                                Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFEBEE),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: IconButton(
+                                    icon: const Icon(
+                                      Icons.close,
+                                      color: Color(0xFFE53E3E),
+                                      size: 18,
+                                    ),
+                                    onPressed: () async {
+                                      final confirm = await showDialog<bool>(
+                                        context: context,
+                                        builder:
+                                            (context) => AlertDialog(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              backgroundColor:
+                                                  AppColors.background,
+                                              title: const Text(
+                                                'Cancel Appointment',
+                                                style: TextStyle(
+                                                  color: AppColors.text,
+                                                ),
+                                              ),
+                                              content: const Text(
+                                                'Are you sure you want to cancel this appointment?',
+                                                style: TextStyle(
+                                                  color: AppColors.text,
+                                                ),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed:
+                                                      () => Navigator.pop(
+                                                        context,
+                                                        false,
+                                                      ),
+                                                  child: const Text(
+                                                    'No',
+                                                    style: TextStyle(
+                                                      color: AppColors.text,
+                                                    ),
+                                                  ),
+                                                ),
+                                                TextButton(
+                                                  onPressed:
+                                                      () => Navigator.pop(
+                                                        context,
+                                                        true,
+                                                      ),
+                                                  child: Text(
+                                                    'Yes',
+                                                    style: TextStyle(
+                                                      color: Color(
+                                                        0xFFE53E3E,
+                                                      ), // fallback error color
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                      );
+                                      if (confirm == true) {
+                                        await AppointmentService.deleteAppointment(
+                                          appt['id'],
+                                        );
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Appointment cancelled',
+                                              ),
+                                              backgroundColor: Color(
+                                                0xFF4CAF50,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          );
-        },
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
