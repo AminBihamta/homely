@@ -20,7 +20,7 @@ class BookAppointmentPage extends StatefulWidget {
 
 class _BookAppointmentPageState extends State<BookAppointmentPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _dateController = TextEditingController();
+  DateTime? _selectedDate;
   final TextEditingController _notesController = TextEditingController();
   String? _selectedStartTime;
   String? _selectedEndTime;
@@ -34,13 +34,26 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
     '3:00 PM'
   ];
 
+  Future<void> _pickDate(BuildContext context) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? now,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+    }
+  }
+
   Future<void> _submit() async {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate() && _selectedDate != null) {
       await AppointmentService.addAppointment({
         'serviceId': widget.serviceId,
         'providerId': widget.providerId,
         'serviceName': widget.serviceName,
-        'date': _dateController.text,
+        'date': _selectedDate, // Store as DateTime
         'startTime': _selectedStartTime,
         'endTime': _selectedEndTime,
         'notes': _notesController.text,
@@ -67,15 +80,24 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(
-                controller: _dateController,
-                decoration: const InputDecoration(
-                  labelText: 'Date',
-                  labelStyle: TextStyle(color: AppColors.text),
+              GestureDetector(
+                onTap: () => _pickDate(context),
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Date',
+                      labelStyle: TextStyle(color: AppColors.text),
+                    ),
+                    controller: TextEditingController(
+                      text: _selectedDate == null
+                          ? ''
+                          : "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}",
+                    ),
+                    style: const TextStyle(color: AppColors.text),
+                    validator: (_) =>
+                        _selectedDate == null ? 'Select a date' : null,
+                  ),
                 ),
-                style: const TextStyle(color: AppColors.text),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Enter a date' : null,
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(

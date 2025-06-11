@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/appointment_service.dart';
 import '../theme/colors.dart';
 
@@ -13,7 +14,7 @@ class EditAppointmentPage extends StatefulWidget {
 
 class _EditAppointmentPageState extends State<EditAppointmentPage> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _dateController;
+  late DateTime? _selectedDate;
   late TextEditingController _notesController;
   String? _selectedStartTime;
   String? _selectedEndTime;
@@ -30,16 +31,39 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
   @override
   void initState() {
     super.initState();
-    _dateController = TextEditingController(text: widget.appointment['date'] ?? '');
+    // Parse the date from Firestore Timestamp, DateTime, or String
+    final dateField = widget.appointment['date'];
+    if (dateField is Timestamp) {
+      _selectedDate = dateField.toDate();
+    } else if (dateField is DateTime) {
+      _selectedDate = dateField;
+    } else if (dateField is String) {
+      _selectedDate = DateTime.tryParse(dateField);
+    } else {
+      _selectedDate = null;
+    }
     _notesController = TextEditingController(text: widget.appointment['notes'] ?? '');
     _selectedStartTime = widget.appointment['startTime'];
     _selectedEndTime = widget.appointment['endTime'];
   }
 
+  Future<void> _pickDate(BuildContext context) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? now,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+    }
+  }
+
   Future<void> _submit() async {
-    if (_formKey.currentState!.validate()) {
-      await AppointmentService.updateAppointment(widget.appointment['id'], {
-        'date': _dateController.text,
+    if (_formKey.currentState!.validate() && _selectedDate != null) {
+      await AppointmentService.editAppointment(widget.appointment['id'], {
+        'date': _selectedDate, // Store as DateTime (Firestore will save as Timestamp)
         'startTime': _selectedStartTime,
         'endTime': _selectedEndTime,
         'notes': _notesController.text,
@@ -79,15 +103,24 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
         child: Form(
           key: _formKey,
           child: ListView(children: [
-            TextFormField(
-              controller: _dateController,
-              decoration: const InputDecoration(
-                labelText: 'Date',
-                labelStyle: TextStyle(color: AppColors.text),
+            GestureDetector(
+              onTap: () => _pickDate(context),
+              child: AbsorbPointer(
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Date',
+                    labelStyle: TextStyle(color: AppColors.text),
+                  ),
+                  controller: TextEditingController(
+                    text: _selectedDate == null
+                        ? ''
+                        : "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}",
+                  ),
+                  style: const TextStyle(color: AppColors.text),
+                  validator: (_) =>
+                      _selectedDate == null ? 'Select a date' : null,
+                ),
               ),
-              style: const TextStyle(color: AppColors.text),
-              validator: (value) =>
-                  value == null || value.isEmpty ? 'Enter a date' : null,
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(

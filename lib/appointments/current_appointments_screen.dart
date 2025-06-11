@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart'; // <-- Add this line
 import 'package:flutter/material.dart';
 import '../services/appointment_service.dart';
 import '../theme/colors.dart';
@@ -10,10 +11,47 @@ class CurrentAppointmentsPage extends StatelessWidget {
   bool _isUpcoming(Map<String, dynamic> appt) {
     try {
       final now = DateTime.now();
-      final date = DateTime.parse(appt['date']);
+      final dateField = appt['date'];
+      DateTime date;
+      if (dateField is Timestamp) {
+        date = dateField.toDate();
+      } else if (dateField is DateTime) {
+        date = dateField;
+      } else if (dateField is String) {
+        date = DateTime.parse(dateField);
+      } else {
+        return false;
+      }
       return date.isAfter(now) || date.isAtSameMomentAs(now);
     } catch (_) {
       return false;
+    }
+  }
+
+  String _formatDate(dynamic dateField) {
+    DateTime date;
+    if (dateField is Timestamp) {
+      date = dateField.toDate();
+    } else if (dateField is DateTime) {
+      date = dateField;
+    } else if (dateField is String) {
+      date = DateTime.parse(dateField);
+    } else {
+      return '-';
+    }
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+  }
+
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+        return Colors.green;
+      case 'to be accepted':
+        return Colors.orange;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -44,13 +82,35 @@ class CurrentAppointmentsPage extends StatelessWidget {
             itemCount: upcoming.length,
             itemBuilder: (context, index) {
               final appt = upcoming[index];
+              final status = (appt['status'] ?? 'to be accepted').toString();
               return Card(
                 color: Colors.white,
                 margin: const EdgeInsets.all(12),
                 child: ListTile(
-                  title: Text(
-                    '${appt['date']} — ${appt['startTime']} to ${appt['endTime']}',
-                    style: const TextStyle(color: AppColors.text),
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${_formatDate(appt['date'])} — ${appt['startTime']} to ${appt['endTime']}',
+                          style: const TextStyle(color: AppColors.text),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.circle, color: _statusColor(status), size: 12),
+                          const SizedBox(width: 4),
+                          Text(
+                            status[0].toUpperCase() + status.substring(1),
+                            style: TextStyle(
+                              color: _statusColor(status),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                   subtitle: Text(
                     appt['notes'] ?? '',

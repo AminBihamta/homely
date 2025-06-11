@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/appointment_service.dart';
 import 'edit_appointment_screen.dart';
 import '../theme/colors.dart';
@@ -7,13 +8,52 @@ import '../widgets/homely_scaffold.dart';
 class RecentAppointmentsPage extends StatelessWidget {
   const RecentAppointmentsPage({super.key});
 
-  bool _isPastAppointment(Map<String, dynamic> appt) {
+  bool _isPastAcceptedAppointment(Map<String, dynamic> appt) {
     try {
       final today = DateTime.now();
-      final date = DateTime.parse(appt['date']);
-      return date.isBefore(today);
+      final dateField = appt['date'];
+      final status = (appt['status'] ?? '').toString().toLowerCase();
+      DateTime date;
+      if (dateField is Timestamp) {
+        date = dateField.toDate();
+      } else if (dateField is DateTime) {
+        date = dateField;
+      } else if (dateField is String) {
+        date = DateTime.parse(dateField);
+      } else {
+        return false;
+      }
+      // Only show if status is accepted and date is before today
+      return status == 'accepted' && date.isBefore(today);
     } catch (_) {
       return false;
+    }
+  }
+
+  String _formatDate(dynamic dateField) {
+    DateTime date;
+    if (dateField is Timestamp) {
+      date = dateField.toDate();
+    } else if (dateField is DateTime) {
+      date = dateField;
+    } else if (dateField is String) {
+      date = DateTime.parse(dateField);
+    } else {
+      return '-';
+    }
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+  }
+
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+        return Colors.green;
+      case 'to be accepted':
+        return Colors.orange;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -30,7 +70,7 @@ class RecentAppointmentsPage extends StatelessWidget {
 
           final allAppointments = snapshot.data ?? [];
           final pastAppointments =
-              allAppointments.where(_isPastAppointment).toList();
+              allAppointments.where(_isPastAcceptedAppointment).toList();
 
           if (pastAppointments.isEmpty) {
             return const Center(
@@ -45,30 +85,20 @@ class RecentAppointmentsPage extends StatelessWidget {
             itemCount: pastAppointments.length,
             itemBuilder: (context, index) {
               final appt = pastAppointments[index];
+              // status is NOT displayed here
               return Card(
                 color: Colors.white,
                 margin: const EdgeInsets.all(12),
                 child: ListTile(
                   title: Text(
-                    '${appt['date']} — ${appt['startTime']} to ${appt['endTime']}',
+                    '${_formatDate(appt['date'])} — ${appt['startTime']} to ${appt['endTime']}',
                     style: const TextStyle(color: AppColors.text),
                   ),
                   subtitle: Text(
                     appt['notes'] ?? '',
                     style: const TextStyle(color: AppColors.text),
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.edit, color: AppColors.highlight),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              EditAppointmentPage(appointment: appt),
-                        ),
-                      );
-                    },
-                  ),
+                  // Remove the trailing edit button for past appointments
                 ),
               );
             },
