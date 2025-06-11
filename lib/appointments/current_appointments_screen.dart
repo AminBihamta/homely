@@ -244,11 +244,19 @@ class CurrentAppointmentsPage extends StatelessWidget {
                                                 borderRadius:
                                                     BorderRadius.circular(12),
                                               ),
+                                              backgroundColor:
+                                                  AppColors.background,
                                               title: const Text(
                                                 'Cancel Appointment',
+                                                style: TextStyle(
+                                                  color: AppColors.text,
+                                                ),
                                               ),
                                               content: const Text(
                                                 'Are you sure you want to cancel this appointment?',
+                                                style: TextStyle(
+                                                  color: AppColors.text,
+                                                ),
                                               ),
                                               actions: [
                                                 TextButton(
@@ -257,10 +265,10 @@ class CurrentAppointmentsPage extends StatelessWidget {
                                                         context,
                                                         false,
                                                       ),
-                                                  child: Text(
+                                                  child: const Text(
                                                     'No',
                                                     style: TextStyle(
-                                                      color: Colors.grey[600],
+                                                      color: AppColors.text,
                                                     ),
                                                   ),
                                                 ),
@@ -270,10 +278,12 @@ class CurrentAppointmentsPage extends StatelessWidget {
                                                         context,
                                                         true,
                                                       ),
-                                                  child: const Text(
+                                                  child: Text(
                                                     'Yes',
                                                     style: TextStyle(
-                                                      color: Color(0xFFE53E3E),
+                                                      color: Color(
+                                                        0xFFE53E3E,
+                                                      ), // fallback error color
                                                     ),
                                                   ),
                                                 ),

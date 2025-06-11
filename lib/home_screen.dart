@@ -229,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
-                  height: 240, // Increased height to prevent overflow
+                  height: 218, // Increased height to prevent overflow
                   child: StreamBuilder<QuerySnapshot>(
                     stream:
                         FirebaseFirestore.instance
@@ -364,13 +364,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                             );
                                           },
                                           style: ElevatedButton.styleFrom(
+                                            backgroundColor: AppColors.primary,
+                                            foregroundColor:
+                                                AppColors.background,
                                             minimumSize: const Size(0, 36),
                                             padding: EdgeInsets.zero,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
                                           ),
                                           child: const Text(
-                                            'Request Appointment',
+                                            'Book',
                                             overflow: TextOverflow.ellipsis,
                                             maxLines: 1,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                           ),
                                         ),
                                       ),
