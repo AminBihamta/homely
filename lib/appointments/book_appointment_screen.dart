@@ -25,14 +25,25 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
   String? _selectedStartTime;
   String? _selectedEndTime;
 
-  final List<String> _timeSlots = [
-    '10:00 AM',
-    '11:00 AM',
-    '12:00 PM',
-    '1:00 PM',
-    '2:00 PM',
-    '3:00 PM'
-  ];
+  // Generate time slots from 5am to 10pm, only allowing future times for today
+  List<String> _generateTimeSlots(DateTime date) {
+    final now = DateTime.now();
+    final slots = <String>[];
+    for (int hour = 5; hour <= 22; hour++) {
+      final slotTime = DateTime(date.year, date.month, date.day, hour);
+      if (date.isAfter(DateTime(now.year, now.month, now.day)) ||
+          (date.year == now.year && date.month == now.month && date.day == now.day && slotTime.isAfter(now))) {
+        final formatted = TimeOfDay(hour: hour, minute: 0).format(context);
+        slots.add(formatted);
+      }
+    }
+    return slots;
+  }
+
+  List<String> get _timeSlots {
+    if (_selectedDate == null) return [];
+    return _generateTimeSlots(_selectedDate!);
+  }
 
   Future<void> _pickDate(BuildContext context) async {
     final now = DateTime.now();
@@ -43,7 +54,11 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
       lastDate: now.add(const Duration(days: 365)),
     );
     if (picked != null) {
-      setState(() => _selectedDate = picked);
+      setState(() {
+        _selectedDate = picked;
+        _selectedStartTime = null;
+        _selectedEndTime = null;
+      });
     }
   }
 
@@ -100,37 +115,44 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
                 ),
               ),
               const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: _selectedStartTime,
-                decoration: const InputDecoration(
-                  labelText: 'Start Time',
-                  labelStyle: TextStyle(color: AppColors.text),
-                ),
-                items: _timeSlots
-                    .map((time) => DropdownMenuItem(
-                          value: time,
-                          child: Text(time, style: const TextStyle(color: AppColors.text)),
-                        ))
-                    .toList(),
-                onChanged: (value) => setState(() => _selectedStartTime = value),
-                validator: (value) =>
-                    value == null ? 'Select a start time' : null,
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: _selectedEndTime,
-                decoration: const InputDecoration(
-                  labelText: 'End Time',
-                  labelStyle: TextStyle(color: AppColors.text),
-                ),
-                items: _timeSlots
-                    .map((time) => DropdownMenuItem(
-                          value: time,
-                          child: Text(time, style: const TextStyle(color: AppColors.text)),
-                        ))
-                    .toList(),
-                onChanged: (value) => setState(() => _selectedEndTime = value),
-                validator: (value) => value == null ? 'Select end time' : null,
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedStartTime,
+                      decoration: const InputDecoration(
+                        labelText: 'Start Time',
+                        labelStyle: TextStyle(color: AppColors.text),
+                      ),
+                      items: _timeSlots
+                          .map((time) => DropdownMenuItem(
+                                value: time,
+                                child: Text(time, style: const TextStyle(color: AppColors.text)),
+                              ))
+                          .toList(),
+                      onChanged: (value) => setState(() => _selectedStartTime = value),
+                      validator: (value) => value == null ? 'Select a start time' : null,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedEndTime,
+                      decoration: const InputDecoration(
+                        labelText: 'End Time',
+                        labelStyle: TextStyle(color: AppColors.text),
+                      ),
+                      items: _timeSlots
+                          .map((time) => DropdownMenuItem(
+                                value: time,
+                                child: Text(time, style: const TextStyle(color: AppColors.text)),
+                              ))
+                          .toList(),
+                      onChanged: (value) => setState(() => _selectedEndTime = value),
+                      validator: (value) => value == null ? 'Select end time' : null,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               TextFormField(

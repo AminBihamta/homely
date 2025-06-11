@@ -19,15 +19,6 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
   String? _selectedStartTime;
   String? _selectedEndTime;
 
-  final List<String> _timeSlots = [
-    '10:00 AM',
-    '11:00 AM',
-    '12:00 PM',
-    '1:00 PM',
-    '2:00 PM',
-    '3:00 PM'
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -47,6 +38,25 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
     _selectedEndTime = widget.appointment['endTime'];
   }
 
+  List<String> _generateTimeSlots(DateTime date) {
+    final now = DateTime.now();
+    final slots = <String>[];
+    for (int hour = 5; hour <= 22; hour++) {
+      final slotTime = DateTime(date.year, date.month, date.day, hour);
+      if (date.isAfter(DateTime(now.year, now.month, now.day)) ||
+          (date.year == now.year && date.month == now.month && date.day == now.day && slotTime.isAfter(now))) {
+        final formatted = TimeOfDay(hour: hour, minute: 0).format(context);
+        slots.add(formatted);
+      }
+    }
+    return slots;
+  }
+
+  List<String> get _timeSlots {
+    if (_selectedDate == null) return [];
+    return _generateTimeSlots(_selectedDate!);
+  }
+
   Future<void> _pickDate(BuildContext context) async {
     final now = DateTime.now();
     final picked = await showDatePicker(
@@ -56,7 +66,11 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
       lastDate: now.add(const Duration(days: 365)),
     );
     if (picked != null) {
-      setState(() => _selectedDate = picked);
+      setState(() {
+        _selectedDate = picked;
+        _selectedStartTime = null;
+        _selectedEndTime = null;
+      });
     }
   }
 
@@ -102,76 +116,121 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: ListView(children: [
-            GestureDetector(
-              onTap: () => _pickDate(context),
-              child: AbsorbPointer(
-                child: TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Date',
-                    labelStyle: TextStyle(color: AppColors.text),
+          child: ListView(
+            children: [
+              GestureDetector(
+                onTap: () => _pickDate(context),
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Date',
+                      labelStyle: TextStyle(color: AppColors.text),
+                    ),
+                    controller: TextEditingController(
+                      text: _selectedDate == null
+                          ? ''
+                          : "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}",
+                    ),
+                    style: const TextStyle(color: AppColors.text),
+                    validator: (_) =>
+                        _selectedDate == null ? 'Select a date' : null,
                   ),
-                  controller: TextEditingController(
-                    text: _selectedDate == null
-                        ? ''
-                        : "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}",
-                  ),
-                  style: const TextStyle(color: AppColors.text),
-                  validator: (_) =>
-                      _selectedDate == null ? 'Select a date' : null,
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: _selectedStartTime,
-              decoration: const InputDecoration(
-                labelText: 'Start Time',
-                labelStyle: TextStyle(color: AppColors.text),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedStartTime,
+                      decoration: const InputDecoration(
+                        labelText: 'Start Time',
+                        labelStyle: TextStyle(color: AppColors.text),
+                      ),
+                      items: _timeSlots
+                          .map((time) => DropdownMenuItem(
+                                value: time,
+                                child: Text(time, style: const TextStyle(color: AppColors.text)),
+                              ))
+                          .toList(),
+                      onChanged: (value) => setState(() => _selectedStartTime = value),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedEndTime,
+                      decoration: const InputDecoration(
+                        labelText: 'End Time',
+                        labelStyle: TextStyle(color: AppColors.text),
+                      ),
+                      items: _timeSlots
+                          .map((time) => DropdownMenuItem(
+                                value: time,
+                                child: Text(time, style: const TextStyle(color: AppColors.text)),
+                              ))
+                          .toList(),
+                      onChanged: (value) => setState(() => _selectedEndTime = value),
+                    ),
+                  ),
+                ],
               ),
-              items: _timeSlots
-                  .map((time) => DropdownMenuItem(
-                        value: time,
-                        child: Text(time, style: const TextStyle(color: AppColors.text)),
-                      ))
-                  .toList(),
-              onChanged: (value) => setState(() => _selectedStartTime = value),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: _selectedEndTime,
-              decoration: const InputDecoration(
-                labelText: 'End Time',
-                labelStyle: TextStyle(color: AppColors.text),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _notesController,
+                decoration: const InputDecoration(
+                  labelText: 'Notes',
+                  labelStyle: TextStyle(color: AppColors.text),
+                ),
+                maxLines: 3,
+                style: const TextStyle(color: AppColors.text),
               ),
-              items: _timeSlots
-                  .map((time) => DropdownMenuItem(
-                        value: time,
-                        child: Text(time, style: const TextStyle(color: AppColors.text)),
-                      ))
-                  .toList(),
-              onChanged: (value) => setState(() => _selectedEndTime = value),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-                labelStyle: TextStyle(color: AppColors.text),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.highlight,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Save Changes'),
               ),
-              maxLines: 3,
-              style: const TextStyle(color: AppColors.text),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _submit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.highlight,
-                foregroundColor: Colors.white,
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.cancel, color: Colors.white),
+                label: const Text('Cancel Appointment'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Cancel Appointment'),
+                      content: const Text('Are you sure you want to cancel this appointment?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('No'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Yes'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    await AppointmentService.deleteAppointment(widget.appointment['id']);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Appointment cancelled')),
+                    );
+                    Navigator.pop(context);
+                  }
+                },
               ),
-              child: const Text('Save Changes'),
-            )
-          ]),
+            ],
+          ),
         ),
       ),
     );

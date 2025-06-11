@@ -116,17 +116,51 @@ class CurrentAppointmentsPage extends StatelessWidget {
                     appt['notes'] ?? '',
                     style: const TextStyle(color: AppColors.text),
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.edit, color: AppColors.highlight),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              EditAppointmentPage(appointment: appt),
-                        ),
-                      );
-                    },
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // (Optional) Edit button for current appointments only
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: AppColors.highlight),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EditAppointmentPage(appointment: appt),
+                            ),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.cancel, color: Colors.red),
+                        tooltip: 'Cancel Appointment',
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Cancel Appointment'),
+                              content: const Text('Are you sure you want to cancel this appointment?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('No'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Yes'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm == true) {
+                            await AppointmentService.deleteAppointment(appt['id']);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Appointment cancelled')),
+                            );
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ),
               );
