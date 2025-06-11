@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/appointment_service.dart';
-import 'edit_appointment_screen.dart';
 import '../theme/colors.dart';
 import '../widgets/homely_scaffold.dart';
 
@@ -44,18 +43,7 @@ class RecentAppointmentsPage extends StatelessWidget {
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
 
-  Color _statusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'accepted':
-        return Colors.green;
-      case 'to be accepted':
-        return Colors.orange;
-      case 'cancelled':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
