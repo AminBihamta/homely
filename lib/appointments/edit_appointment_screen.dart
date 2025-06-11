@@ -32,7 +32,9 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
     } else {
       _selectedDate = null;
     }
-    _notesController = TextEditingController(text: widget.appointment['notes'] ?? '');
+    _notesController = TextEditingController(
+      text: widget.appointment['notes'] ?? '',
+    );
     _selectedStartTime = widget.appointment['startTime'];
     _selectedEndTime = widget.appointment['endTime'];
   }
@@ -43,7 +45,10 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
     for (int hour = 5; hour <= 22; hour++) {
       final slotTime = DateTime(date.year, date.month, date.day, hour);
       if (date.isAfter(DateTime(now.year, now.month, now.day)) ||
-          (date.year == now.year && date.month == now.month && date.day == now.day && slotTime.isAfter(now))) {
+          (date.year == now.year &&
+              date.month == now.month &&
+              date.day == now.day &&
+              slotTime.isAfter(now))) {
         final formatted = TimeOfDay(hour: hour, minute: 0).format(context);
         slots.add(formatted);
       }
@@ -63,6 +68,33 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
       initialDate: _selectedDate ?? now,
       firstDate: now,
       lastDate: now.add(const Duration(days: 365)),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFA27B5C), // accentBrown
+              onPrimary: Color(0xFFFFFEFA), // backgroundLight
+              onSurface: Color(0xFF222222), // text color
+              surface: Color(0xFFFFFEFA), // background
+              background: Color(0xFFFFFEFA),
+            ),
+            textTheme: const TextTheme(
+              titleLarge: TextStyle(color: Color(0xFF222222)),
+              bodyLarge: TextStyle(color: Color(0xFF222222)),
+              bodyMedium: TextStyle(color: Color(0xFF222222)),
+              labelLarge: TextStyle(color: Color(0xFF222222)),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: Color(0xFFA27B5C),
+                textStyle: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            dialogBackgroundColor: Color(0xFFFFFEFA),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       setState(() {
@@ -87,7 +119,9 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
         barrierDismissible: false,
         builder: (BuildContext context) {
           return Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
@@ -106,7 +140,9 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
                         child: ElevatedButton(
                           onPressed: () {
                             Navigator.pop(context); // close dialog
-                            Navigator.pop(context); // go back to previous screen
+                            Navigator.pop(
+                              context,
+                            ); // go back to previous screen
                             // Navigate to active bookings if needed
                           },
                           style: ElevatedButton.styleFrom(
@@ -116,7 +152,10 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text('View Active Bookings', style: TextStyle(color: Colors.white)),
+                          child: const Text(
+                            'View Active Bookings',
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -133,7 +172,10 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text('Go Back Home', style: TextStyle(color: Colors.black)),
+                          child: const Text(
+                            'Go Back Home',
+                            style: TextStyle(color: Colors.black),
+                          ),
                         ),
                       ),
                     ],
@@ -198,17 +240,19 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
                     child: AbsorbPointer(
                       child: TextFormField(
                         controller: TextEditingController(
-                          text: _selectedDate == null
-                              ? ''
-                              : "${_selectedDate!.day} ${_monthName(_selectedDate!.month)}, ${_selectedDate!.year}",
+                          text:
+                              _selectedDate == null
+                                  ? ''
+                                  : "${_selectedDate!.day} ${_monthName(_selectedDate!.month)}, ${_selectedDate!.year}",
                         ),
                         decoration: const InputDecoration(
                           prefixIcon: Icon(Icons.calendar_today),
                           hintText: 'Date',
                           border: OutlineInputBorder(),
                         ),
-                        validator: (_) =>
-                            _selectedDate == null ? 'Select a date' : null,
+                        validator:
+                            (_) =>
+                                _selectedDate == null ? 'Select a date' : null,
                       ),
                     ),
                   ),
@@ -223,13 +267,18 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
                             hintText: 'Start Time',
                             border: OutlineInputBorder(),
                           ),
-                          items: _timeSlots
-                              .map((time) => DropdownMenuItem(
-                                    value: time,
-                                    child: Text(time),
-                                  ))
-                              .toList(),
-                          onChanged: (value) => setState(() => _selectedStartTime = value),
+                          items:
+                              _timeSlots
+                                  .map(
+                                    (time) => DropdownMenuItem(
+                                      value: time,
+                                      child: Text(time),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged:
+                              (value) =>
+                                  setState(() => _selectedStartTime = value),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -241,13 +290,18 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
                             hintText: 'End Time',
                             border: OutlineInputBorder(),
                           ),
-                          items: _timeSlots
-                              .map((time) => DropdownMenuItem(
-                                    value: time,
-                                    child: Text(time),
-                                  ))
-                              .toList(),
-                          onChanged: (value) => setState(() => _selectedEndTime = value),
+                          items:
+                              _timeSlots
+                                  .map(
+                                    (time) => DropdownMenuItem(
+                                      value: time,
+                                      child: Text(time),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged:
+                              (value) =>
+                                  setState(() => _selectedEndTime = value),
                         ),
                       ),
                     ],
@@ -311,8 +365,19 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
 
   String _monthName(int month) {
     const months = [
-      '', 'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      '',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return months[month];
   }
