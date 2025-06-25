@@ -313,22 +313,37 @@ class _CurrentAppointmentsPageState extends State<CurrentAppointmentsPage> {
                                               ),
                                         );
                                         if (confirm == true) {
-                                          await AppointmentService.completeAppointment(
-                                            appt['id'],
-                                          );
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Appointment completed',
-                                                ),
-                                                backgroundColor: Color(
-                                                  0xFF4CAF50,
-                                                ),
-                                              ),
+                                          try {
+                                            await AppointmentService.completeAppointment(
+                                              appt['id'],
                                             );
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Appointment completed successfully',
+                                                  ),
+                                                  backgroundColor: Color(
+                                                    0xFF4CAF50,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          } catch (e) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Failed to complete appointment: $e',
+                                                  ),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                            }
                                           }
                                         }
                                       },
@@ -412,22 +427,36 @@ class _CurrentAppointmentsPageState extends State<CurrentAppointmentsPage> {
                                             ),
                                       );
                                       if (confirm == true) {
-                                        await AppointmentService.deleteAppointment(
-                                          appt['id'],
-                                        );
-                                        if (context.mounted) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Appointment cancelled',
+                                        try {
+                                          // Update the appointment status to 'cancelled' instead of deleting
+                                          await FirebaseFirestore.instance
+                                              .collection('appointments')
+                                              .doc(appt['id'])
+                                              .update({'status': 'cancelled'});
+                                          
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Appointment cancelled',
+                                                ),
+                                                backgroundColor: Color(
+                                                  0xFFE53E3E, // Red color for cancel
+                                                ),
                                               ),
-                                              backgroundColor: Color(
-                                                0xFF4CAF50,
-                                              ),
-                                            ),
-                                          );
+                                            );
+                                          }
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Failed to cancel: $e'),
+                                                backgroundColor: Colors.red,
+                                              )
+                                            );
+                                          }
                                         }
                                       }
                                     },

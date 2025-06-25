@@ -22,12 +22,16 @@ class AppointmentService {
     return FirebaseFirestore.instance
         .collection('appointments')
         .where('homeownerId', isEqualTo: user.uid)
+        .where('status', whereIn: ['pending', 'accepted']) // Only get active appointments
         .snapshots()
         .map(
-          (snapshot) =>
-              snapshot.docs
-                  .map((doc) => {...doc.data(), 'id': doc.id})
-                  .toList(),
+          (snapshot) {
+            final appointments = snapshot.docs
+                .map((doc) => {...doc.data(), 'id': doc.id})
+                .toList();
+            print('Fetched ${appointments.length} active appointments for user ${user.uid}');
+            return appointments;
+          },
         );
   }
 
@@ -50,13 +54,19 @@ class AppointmentService {
 
   // Mark appointment as completed
   static Future<void> completeAppointment(String appointmentId) async {
-    await FirebaseFirestore.instance
-        .collection('appointments')
-        .doc(appointmentId)
-        .update({
-          'status': 'completed',
-          'completedAt': FieldValue.serverTimestamp(),
-        });
+    try {
+      await FirebaseFirestore.instance
+          .collection('appointments')
+          .doc(appointmentId)
+          .update({
+            'status': 'completed',
+            'completedAt': FieldValue.serverTimestamp(),
+          });
+      print('Appointment $appointmentId successfully marked as completed');
+    } catch (e) {
+      print('Error completing appointment $appointmentId: $e');
+      throw e; // Re-throw to allow handling in the UI
+    }
   }
 
   // Get appointments that need auto-completion (accepted appointments older than 1 month)
@@ -314,6 +324,7 @@ class AppointmentService {
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> providerAppointments = [];
+          print('Fetched ${snapshot.docs.length} pending/accepted appointments');
 
           // Get all user's services first
           final userServicesSnapshot =
@@ -324,14 +335,19 @@ class AppointmentService {
 
           final userServiceIds =
               userServicesSnapshot.docs.map((doc) => doc.id).toSet();
+          print('Provider has ${userServiceIds.length} services');
 
           // Filter appointments to only include those for the provider's services
           for (final doc in snapshot.docs) {
             final data = doc.data();
             final serviceId = data['serviceId'] as String?;
+            final appointmentStatus = data['status'] as String? ?? 'unknown';
 
             if (serviceId != null && userServiceIds.contains(serviceId)) {
+              print('Including appointment ${doc.id} with status $appointmentStatus');
               providerAppointments.add({...data, 'id': doc.id});
+            } else {
+              print('Skipping appointment ${doc.id} - serviceId: $serviceId, status: $appointmentStatus');
             }
           }
 
@@ -370,6 +386,7 @@ class AppointmentService {
             }
           });
 
+          print('Returning ${providerAppointments.length} provider appointments');
           return providerAppointments;
         });
   }
