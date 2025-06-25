@@ -28,18 +28,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Filter services based on search query
-  List<QueryDocumentSnapshot> _filterServices(List<QueryDocumentSnapshot> docs) {
+  List<QueryDocumentSnapshot> _filterServices(
+    List<QueryDocumentSnapshot> docs,
+  ) {
     if (_searchQuery.isEmpty) {
       return docs;
     }
-    
+
     return docs.where((doc) {
       final data = doc.data() as Map<String, dynamic>;
       final serviceName = (data['name'] ?? '').toString().toLowerCase();
-      final serviceDescription = (data['description'] ?? '').toString().toLowerCase();
-      
-      return serviceName.contains(_searchQuery) || 
-             serviceDescription.contains(_searchQuery);
+      final serviceDescription =
+          (data['description'] ?? '').toString().toLowerCase();
+      final serviceCategory = (data['category'] ?? '').toString().toLowerCase();
+
+      return serviceName.contains(_searchQuery) ||
+          serviceDescription.contains(_searchQuery) ||
+          serviceCategory.contains(_searchQuery);
     }).toList();
   }
 
@@ -248,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  _searchQuery.isEmpty 
+                  _searchQuery.isEmpty
                       ? '$selectedCategory Services For You'
                       : 'Search Results',
                   style: const TextStyle(
@@ -258,7 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 Text(
-                  _searchQuery.isEmpty 
+                  _searchQuery.isEmpty
                       ? 'Our recommended services based on your preference'
                       : 'Services matching "$_searchQuery"',
                   style: const TextStyle(color: AppColors.text),
@@ -268,14 +273,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   height:
                       235, // Increased height to accommodate dynamic content
                   child: StreamBuilder<QuerySnapshot>(
-                    stream: _searchQuery.isEmpty
-                        ? FirebaseFirestore.instance
-                            .collection('services')
-                            .where('category', isEqualTo: selectedCategory)
-                            .snapshots()
-                        : FirebaseFirestore.instance
-                            .collection('services')
-                            .snapshots(),
+                    stream:
+                        _searchQuery.isEmpty
+                            ? FirebaseFirestore.instance
+                                .collection('services')
+                                .where('category', isEqualTo: selectedCategory)
+                                .snapshots()
+                            : FirebaseFirestore.instance
+                                .collection('services')
+                                .snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(
@@ -300,8 +306,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (filteredDocs.isEmpty) {
                         return Center(
                           child: Text(
-                            _searchQuery.isEmpty 
-                                ? 'No services available' 
+                            _searchQuery.isEmpty
+                                ? 'No services available'
                                 : 'No services found for "$_searchQuery"',
                             style: const TextStyle(color: AppColors.text),
                             textAlign: TextAlign.center,
@@ -314,7 +320,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemCount: filteredDocs.length,
                         itemBuilder: (context, index) {
                           final data =
-                              filteredDocs[index].data() as Map<String, dynamic>;
+                              filteredDocs[index].data()
+                                  as Map<String, dynamic>;
                           final serviceId = filteredDocs[index].id;
                           final providerId = data['provider_id'] ?? '';
 

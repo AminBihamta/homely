@@ -117,22 +117,23 @@ class AppointmentService {
         .where('status', isEqualTo: 'completed')
         .snapshots()
         .map((snapshot) {
-          final appointments = snapshot.docs
-              .map((doc) => {...doc.data(), 'id': doc.id})
-              .toList();
-          
+          final appointments =
+              snapshot.docs
+                  .map((doc) => {...doc.data(), 'id': doc.id})
+                  .toList();
+
           // Sort by completedAt date, newest first
           appointments.sort((a, b) {
             try {
               final aCompletedAt = a['completedAt'];
               final bCompletedAt = b['completedAt'];
-              
+
               if (aCompletedAt == null && bCompletedAt == null) return 0;
               if (aCompletedAt == null) return 1;
               if (bCompletedAt == null) return -1;
-              
+
               DateTime aDate, bDate;
-              
+
               if (aCompletedAt is Timestamp) {
                 aDate = aCompletedAt.toDate();
               } else if (aCompletedAt is DateTime) {
@@ -140,7 +141,7 @@ class AppointmentService {
               } else {
                 return 1;
               }
-              
+
               if (bCompletedAt is Timestamp) {
                 bDate = bCompletedAt.toDate();
               } else if (bCompletedAt is DateTime) {
@@ -148,14 +149,14 @@ class AppointmentService {
               } else {
                 return -1;
               }
-              
+
               return bDate.compareTo(aDate); // Newest first
             } catch (e) {
               print('Error sorting appointments: $e');
               return 0;
             }
           });
-          
+
           return appointments;
         });
   }
@@ -171,37 +172,39 @@ class AppointmentService {
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> providerAppointments = [];
-          
+
           // Get all user's services first
-          final userServicesSnapshot = await FirebaseFirestore.instance
-              .collection('services')
-              .where('user_id', isEqualTo: user.uid)
-              .get();
-              
-          final userServiceIds = userServicesSnapshot.docs.map((doc) => doc.id).toSet();
-          
+          final userServicesSnapshot =
+              await FirebaseFirestore.instance
+                  .collection('services')
+                  .where('user_id', isEqualTo: user.uid)
+                  .get();
+
+          final userServiceIds =
+              userServicesSnapshot.docs.map((doc) => doc.id).toSet();
+
           // Filter appointments to only include those for the provider's services
           for (final doc in snapshot.docs) {
             final data = doc.data();
             final serviceId = data['serviceId'] as String?;
-            
+
             if (serviceId != null && userServiceIds.contains(serviceId)) {
               providerAppointments.add({...data, 'id': doc.id});
             }
           }
-          
+
           // Sort by completedAt date, newest first
           providerAppointments.sort((a, b) {
             try {
               final aCompletedAt = a['completedAt'];
               final bCompletedAt = b['completedAt'];
-              
+
               if (aCompletedAt == null && bCompletedAt == null) return 0;
               if (aCompletedAt == null) return 1;
               if (bCompletedAt == null) return -1;
-              
+
               DateTime aDate, bDate;
-              
+
               if (aCompletedAt is Timestamp) {
                 aDate = aCompletedAt.toDate();
               } else if (aCompletedAt is DateTime) {
@@ -209,7 +212,7 @@ class AppointmentService {
               } else {
                 return 1;
               }
-              
+
               if (bCompletedAt is Timestamp) {
                 bDate = bCompletedAt.toDate();
               } else if (bCompletedAt is DateTime) {
@@ -217,14 +220,14 @@ class AppointmentService {
               } else {
                 return -1;
               }
-              
+
               return bDate.compareTo(aDate); // Newest first
             } catch (e) {
               print('Error sorting provider appointments: $e');
               return 0;
             }
           });
-          
+
           return providerAppointments;
         });
   }
@@ -240,37 +243,39 @@ class AppointmentService {
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> providerAppointments = [];
-          
+
           // Get all user's services first
-          final userServicesSnapshot = await FirebaseFirestore.instance
-              .collection('services')
-              .where('user_id', isEqualTo: user.uid)
-              .get();
-              
-          final userServiceIds = userServicesSnapshot.docs.map((doc) => doc.id).toSet();
-          
+          final userServicesSnapshot =
+              await FirebaseFirestore.instance
+                  .collection('services')
+                  .where('user_id', isEqualTo: user.uid)
+                  .get();
+
+          final userServiceIds =
+              userServicesSnapshot.docs.map((doc) => doc.id).toSet();
+
           // Filter appointments to only include those for the provider's services
           for (final doc in snapshot.docs) {
             final data = doc.data();
             final serviceId = data['serviceId'] as String?;
-            
+
             if (serviceId != null && userServiceIds.contains(serviceId)) {
               providerAppointments.add({...data, 'id': doc.id});
             }
           }
-          
+
           // Sort by creation date, newest first
           providerAppointments.sort((a, b) {
             try {
               final aCreatedAt = a['createdAt'];
               final bCreatedAt = b['createdAt'];
-              
+
               if (aCreatedAt == null && bCreatedAt == null) return 0;
               if (aCreatedAt == null) return 1;
               if (bCreatedAt == null) return -1;
-              
+
               DateTime aDate, bDate;
-              
+
               if (aCreatedAt is Timestamp) {
                 aDate = aCreatedAt.toDate();
               } else if (aCreatedAt is DateTime) {
@@ -278,7 +283,7 @@ class AppointmentService {
               } else {
                 return 1;
               }
-              
+
               if (bCreatedAt is Timestamp) {
                 bDate = bCreatedAt.toDate();
               } else if (bCreatedAt is DateTime) {
@@ -286,14 +291,14 @@ class AppointmentService {
               } else {
                 return -1;
               }
-              
+
               return bDate.compareTo(aDate); // Newest first
             } catch (e) {
               print('Error sorting provider pending appointments: $e');
               return 0;
             }
           });
-          
+
           return providerAppointments;
         });
   }

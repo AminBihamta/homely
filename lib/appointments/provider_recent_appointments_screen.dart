@@ -9,10 +9,12 @@ class ProviderRecentAppointmentsPage extends StatefulWidget {
   const ProviderRecentAppointmentsPage({super.key});
 
   @override
-  State<ProviderRecentAppointmentsPage> createState() => _ProviderRecentAppointmentsPageState();
+  State<ProviderRecentAppointmentsPage> createState() =>
+      _ProviderRecentAppointmentsPageState();
 }
 
-class _ProviderRecentAppointmentsPageState extends State<ProviderRecentAppointmentsPage> {
+class _ProviderRecentAppointmentsPageState
+    extends State<ProviderRecentAppointmentsPage> {
   @override
   void initState() {
     super.initState();
@@ -68,14 +70,15 @@ class _ProviderRecentAppointmentsPageState extends State<ProviderRecentAppointme
 
   Future<String> _getHomeownerName(String? homeownerEmail) async {
     if (homeownerEmail == null || homeownerEmail.isEmpty) return 'Unknown';
-    
+
     try {
-      final query = await FirebaseFirestore.instance
-          .collection('user_data')
-          .where('email', isEqualTo: homeownerEmail)
-          .limit(1)
-          .get();
-      
+      final query =
+          await FirebaseFirestore.instance
+              .collection('user_data')
+              .where('email', isEqualTo: homeownerEmail)
+              .limit(1)
+              .get();
+
       if (query.docs.isNotEmpty) {
         return query.docs.first.data()['name'] ?? 'Unknown';
       }
@@ -162,7 +165,8 @@ class _ProviderRecentAppointmentsPageState extends State<ProviderRecentAppointme
                         FutureBuilder<String>(
                           future: _getHomeownerName(homeownerEmail),
                           builder: (context, homeownerSnapshot) {
-                            final customerName = homeownerSnapshot.data ?? 'Loading...';
+                            final customerName =
+                                homeownerSnapshot.data ?? 'Loading...';
                             return Row(
                               children: [
                                 const Icon(

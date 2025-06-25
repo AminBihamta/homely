@@ -35,14 +35,15 @@ class ProviderPendingAppointmentsPage extends StatelessWidget {
 
   Future<String> _getHomeownerName(String? homeownerEmail) async {
     if (homeownerEmail == null || homeownerEmail.isEmpty) return 'Unknown';
-    
+
     try {
-      final query = await FirebaseFirestore.instance
-          .collection('user_data')
-          .where('email', isEqualTo: homeownerEmail)
-          .limit(1)
-          .get();
-      
+      final query =
+          await FirebaseFirestore.instance
+              .collection('user_data')
+              .where('email', isEqualTo: homeownerEmail)
+              .limit(1)
+              .get();
+
       if (query.docs.isNotEmpty) {
         return query.docs.first.data()['name'] ?? 'Unknown';
       }
@@ -109,7 +110,7 @@ class ProviderPendingAppointmentsPage extends StatelessWidget {
                 final notes = appt['notes'] ?? '';
                 final appointmentId = appt['id'] as String;
                 final homeownerEmail = appt['homeownerEmail'] as String?;
-                
+
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
@@ -143,7 +144,8 @@ class ProviderPendingAppointmentsPage extends StatelessWidget {
                         FutureBuilder<String>(
                           future: _getHomeownerName(homeownerEmail),
                           builder: (context, homeownerSnapshot) {
-                            final customerName = homeownerSnapshot.data ?? 'Loading...';
+                            final customerName =
+                                homeownerSnapshot.data ?? 'Loading...';
                             return Row(
                               children: [
                                 const Icon(
@@ -165,7 +167,7 @@ class ProviderPendingAppointmentsPage extends StatelessWidget {
                           },
                         ),
                         const SizedBox(height: 8),
-                        
+
                         Text(
                           '${_formatDate(appt['date'])} — ${appt['startTime']} to ${appt['endTime']}',
                           style: const TextStyle(
@@ -225,11 +227,12 @@ class ProviderPendingAppointmentsPage extends StatelessWidget {
                                       size: 18,
                                     ),
                                     tooltip: 'Accept Appointment',
-                                    onPressed: () => _updateAppointmentStatus(
-                                      context,
-                                      appointmentId,
-                                      'accepted',
-                                    ),
+                                    onPressed:
+                                        () => _updateAppointmentStatus(
+                                          context,
+                                          appointmentId,
+                                          'accepted',
+                                        ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -247,11 +250,12 @@ class ProviderPendingAppointmentsPage extends StatelessWidget {
                                       size: 18,
                                     ),
                                     tooltip: 'Reject Appointment',
-                                    onPressed: () => _updateAppointmentStatus(
-                                      context,
-                                      appointmentId,
-                                      'cancelled',
-                                    ),
+                                    onPressed:
+                                        () => _updateAppointmentStatus(
+                                          context,
+                                          appointmentId,
+                                          'cancelled',
+                                        ),
                                   ),
                                 ),
                               ],

@@ -82,7 +82,9 @@ class HomelyScaffold extends StatelessWidget {
         if (isProvider) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const ProviderPendingAppointmentsPage()),
+            MaterialPageRoute(
+              builder: (_) => const ProviderPendingAppointmentsPage(),
+            ),
           );
         } else {
           Navigator.pushReplacement(
@@ -111,7 +113,9 @@ class HomelyScaffold extends StatelessWidget {
         if (isProvider) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const ProviderRecentAppointmentsPage()),
+            MaterialPageRoute(
+              builder: (_) => const ProviderRecentAppointmentsPage(),
+            ),
           );
         } else {
           Navigator.pushReplacement(
