@@ -263,17 +263,22 @@ class ServiceDetailsScreen extends StatelessWidget {
                                   },
                                   child: const Text(
                                     "Book Appointment",
-                                    style: TextStyle(color: AppColors.background),
+                                    style: TextStyle(
+                                      color: AppColors.background,
+                                    ),
                                   ),
                                 );
                               }
                               return const SizedBox.shrink();
                             },
+                          ),
                           const SizedBox(height: 16),
-                          
+
                           // Average Rating Section
                           FutureBuilder<Map<String, dynamic>>(
-                            future: ReviewService.getServiceRatingStats(serviceId),
+                            future: ReviewService.getServiceRatingStats(
+                              serviceId,
+                            ),
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
@@ -291,7 +296,10 @@ class ServiceDetailsScreen extends StatelessWidget {
 
                               if (totalReviews == 0) {
                                 return const Padding(
-                                  padding: EdgeInsets.only(top: 8.0, bottom: 16.0),
+                                  padding: EdgeInsets.only(
+                                    top: 8.0,
+                                    bottom: 16.0,
+                                  ),
                                   child: Text(
                                     'No reviews yet',
                                     style: TextStyle(
@@ -338,7 +346,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                               );
                             },
                           ),
-                          
+
                           // Description Section
                           FutureBuilder<DocumentSnapshot>(
                             future:
@@ -347,10 +355,13 @@ class ServiceDetailsScreen extends StatelessWidget {
                                     .doc(serviceId)
                                     .get(),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
                                 return const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 0),
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 );
                               }
                               if (!snapshot.hasData || !snapshot.data!.exists) {
@@ -359,9 +370,12 @@ class ServiceDetailsScreen extends StatelessWidget {
                                   style: TextStyle(color: Colors.grey),
                                 );
                               }
-                              final data = snapshot.data!.data() as Map<String, dynamic>?;
+                              final data =
+                                  snapshot.data!.data()
+                                      as Map<String, dynamic>?;
                               final description =
-                                  data?['description'] ?? 'No description provided.';
+                                  data?['description'] ??
+                                  'No description provided.';
                               return Text(
                                 description,
                                 style: const TextStyle(
@@ -371,9 +385,9 @@ class ServiceDetailsScreen extends StatelessWidget {
                               );
                             },
                           ),
-                          
+
                           const SizedBox(height: 16),
-                          
+
                           // Buttons Row
                           FutureBuilder<bool>(
                             future: _isProvider(),
@@ -388,7 +402,9 @@ class ServiceDetailsScreen extends StatelessWidget {
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: AppColors.highlight,
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(20),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                           ),
                                         ),
                                         onPressed: () async {
@@ -399,7 +415,8 @@ class ServiceDetailsScreen extends StatelessWidget {
                                                   .doc(serviceId)
                                                   .get();
                                           final providerId =
-                                              serviceDoc.data()?['user_id'] ?? '';
+                                              serviceDoc.data()?['user_id'] ??
+                                              '';
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
@@ -426,7 +443,9 @@ class ServiceDetailsScreen extends StatelessWidget {
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColors.primary,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                         ),
                                       ),
                                       onPressed: () {
@@ -444,7 +463,9 @@ class ServiceDetailsScreen extends StatelessWidget {
                                       },
                                       child: const Text(
                                         "Book Appointment",
-                                        style: TextStyle(color: AppColors.background),
+                                        style: TextStyle(
+                                          color: AppColors.background,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -640,7 +661,8 @@ class ServiceDetailsScreen extends StatelessWidget {
                                   .doc(serviceId)
                                   .get(),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const Center(
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
@@ -653,9 +675,10 @@ class ServiceDetailsScreen extends StatelessWidget {
                                 style: TextStyle(color: Colors.grey),
                               );
                             }
-                            final data = snapshot.data!.data() as Map<String, dynamic>?;
+                            final data =
+                                snapshot.data!.data() as Map<String, dynamic>?;
                             final providerId = data?['user_id'] ?? '';
-                            
+
                             return StreamBuilder<QuerySnapshot>(
                               stream:
                                   FirebaseFirestore.instance
@@ -692,10 +715,12 @@ class ServiceDetailsScreen extends StatelessWidget {
                                   scrollDirection: Axis.horizontal,
                                   itemCount: otherDocs.length,
                                   separatorBuilder:
-                                      (context, idx) => const SizedBox(width: 12),
+                                      (context, idx) =>
+                                          const SizedBox(width: 12),
                                   itemBuilder: (context, idx) {
                                     final doc = otherDocs[idx];
-                                    final d = doc.data() as Map<String, dynamic>;
+                                    final d =
+                                        doc.data() as Map<String, dynamic>;
                                     return GestureDetector(
                                       onTap: () {
                                         Navigator.push(
@@ -714,7 +739,9 @@ class ServiceDetailsScreen extends StatelessWidget {
                                         width: 180,
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
                                               color: Colors.black.withOpacity(
@@ -776,8 +803,10 @@ class ServiceDetailsScreen extends StatelessWidget {
                                                   Text(
                                                     'RM${(d['hourly_rate'] ?? 0).toString()}',
                                                     style: const TextStyle(
-                                                      color: AppColors.highlight,
-                                                      fontWeight: FontWeight.bold,
+                                                      color:
+                                                          AppColors.highlight,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                   const Icon(

@@ -158,9 +158,10 @@ class _ProviderRecentAppointmentsPageState
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => AppointmentDetailsProvider(
-                                    appointment: appt,
-                                  ),
+                                  builder:
+                                      (_) => AppointmentDetailsProvider(
+                                        appointment: appt,
+                                      ),
                                 ),
                               );
                             },

@@ -118,9 +118,9 @@ class ProviderPendingAppointmentsPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => AppointmentDetailsProvider(
-                          appointment: appt,
-                        ),
+                        builder:
+                            (_) =>
+                                AppointmentDetailsProvider(appointment: appt),
                       ),
                     );
                   },

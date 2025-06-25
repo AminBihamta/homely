@@ -32,8 +32,8 @@ class _ProviderServicesReviewsScreenState
           index < rating.floor()
               ? Icons.star
               : (index < rating && rating % 1 >= 0.5)
-                  ? Icons.star_half
-                  : Icons.star_border,
+              ? Icons.star_half
+              : Icons.star_border,
           color: Colors.amber,
           size: 16,
         );
@@ -71,10 +71,11 @@ class _ProviderServicesReviewsScreenState
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('services')
-              .where('user_id', isEqualTo: userId)
-              .snapshots(),
+          stream:
+              FirebaseFirestore.instance
+                  .collection('services')
+                  .where('user_id', isEqualTo: userId)
+                  .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
@@ -104,10 +105,7 @@ class _ProviderServicesReviewsScreenState
                     SizedBox(height: 16),
                     Text(
                       'No services available.',
-                      style: TextStyle(
-                        color: AppColors.text,
-                        fontSize: 16,
-                      ),
+                      style: TextStyle(color: AppColors.text, fontSize: 16),
                     ),
                   ],
                 ),
@@ -140,10 +138,11 @@ class _ProviderServicesReviewsScreenState
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => ServiceReviewsDetailScreen(
-                            serviceId: serviceId,
-                            serviceName: serviceName,
-                          ),
+                          builder:
+                              (_) => ServiceReviewsDetailScreen(
+                                serviceId: serviceId,
+                                serviceName: serviceName,
+                              ),
                         ),
                       );
                     },
@@ -170,7 +169,9 @@ class _ProviderServicesReviewsScreenState
                         ),
                         const SizedBox(height: 8),
                         FutureBuilder<Map<String, dynamic>>(
-                          future: ReviewService.getServiceRatingStats(serviceId),
+                          future: ReviewService.getServiceRatingStats(
+                            serviceId,
+                          ),
                           builder: (context, reviewSnapshot) {
                             if (reviewSnapshot.connectionState ==
                                 ConnectionState.waiting) {

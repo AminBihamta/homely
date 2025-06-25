@@ -37,9 +37,7 @@ class _ServiceReviewsDetailScreenState
     return Card(
       color: AppColors.background,
       elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -128,9 +126,7 @@ class _ServiceReviewsDetailScreenState
     return Card(
       color: AppColors.primary.withValues(alpha: 0.1),
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -151,8 +147,8 @@ class _ServiceReviewsDetailScreenState
                   index < averageRating.floor()
                       ? Icons.star
                       : (index < averageRating && averageRating % 1 >= 0.5)
-                          ? Icons.star_half
-                          : Icons.star_border,
+                      ? Icons.star_half
+                      : Icons.star_border,
                   color: Colors.amber,
                   size: 24,
                 );
@@ -161,10 +157,7 @@ class _ServiceReviewsDetailScreenState
             const SizedBox(height: 8),
             Text(
               'Based on $totalReviews review${totalReviews == 1 ? '' : 's'}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
           ],
         ),
@@ -215,18 +208,11 @@ class _ServiceReviewsDetailScreenState
                     child: Column(
                       children: [
                         SizedBox(height: 50),
-                        Icon(
-                          Icons.star_outline,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
+                        Icon(Icons.star_outline, size: 64, color: Colors.grey),
                         SizedBox(height: 16),
                         Text(
                           'No reviews yet',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
                         ),
                       ],
                     ),
@@ -256,7 +242,9 @@ class _ServiceReviewsDetailScreenState
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
-                      child: CircularProgressIndicator(color: AppColors.primary),
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
                     );
                   }
 
@@ -284,10 +272,7 @@ class _ServiceReviewsDetailScreenState
                           SizedBox(height: 16),
                           Text(
                             'No reviews available',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                            ),
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
                           ),
                         ],
                       ),

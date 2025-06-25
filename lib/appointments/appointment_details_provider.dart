@@ -69,7 +69,10 @@ class AppointmentDetailsProvider extends StatelessWidget {
     }
   }
 
-  Future<void> _updateAppointmentStatus(String appointmentId, String newStatus) async {
+  Future<void> _updateAppointmentStatus(
+    String appointmentId,
+    String newStatus,
+  ) async {
     try {
       await FirebaseFirestore.instance
           .collection('appointments')
@@ -114,7 +117,7 @@ class AppointmentDetailsProvider extends StatelessWidget {
               homeowner?['name'] ?? homeownerEmail ?? 'Unknown';
           final address = homeowner?['address'] ?? 'No address provided';
           final email = homeowner?['email'] ?? homeownerEmail ?? 'No email';
-          
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -130,10 +133,13 @@ class AppointmentDetailsProvider extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Status Display
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: _getStatusColor(status).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -162,7 +168,7 @@ class AppointmentDetailsProvider extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Customer Information Section
                 const Text(
                   'Customer Information',
@@ -173,7 +179,7 @@ class AppointmentDetailsProvider extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Profile + Customer Details
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,15 +328,19 @@ class AppointmentDetailsProvider extends StatelessWidget {
                   style: const TextStyle(fontSize: 16, color: AppColors.text),
                 ),
                 const SizedBox(height: 40),
-                
+
                 // Action Buttons - Only show for pending appointments
-                if (status.toLowerCase() == 'pending' && appointmentId.isNotEmpty) ...[
+                if (status.toLowerCase() == 'pending' &&
+                    appointmentId.isNotEmpty) ...[
                   Row(
                     children: [
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () async {
-                            await _updateAppointmentStatus(appointmentId, 'accepted');
+                            await _updateAppointmentStatus(
+                              appointmentId,
+                              'accepted',
+                            );
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -338,7 +348,9 @@ class AppointmentDetailsProvider extends StatelessWidget {
                                   backgroundColor: Color(0xFF4CAF50),
                                 ),
                               );
-                              Navigator.pop(context); // Go back to previous screen
+                              Navigator.pop(
+                                context,
+                              ); // Go back to previous screen
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -365,24 +377,35 @@ class AppointmentDetailsProvider extends StatelessWidget {
                             // Show confirmation dialog
                             final confirm = await showDialog<bool>(
                               context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Cancel Appointment'),
-                                content: const Text('Are you sure you want to cancel this appointment?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context, false),
-                                    child: const Text('No'),
+                              builder:
+                                  (context) => AlertDialog(
+                                    title: const Text('Cancel Appointment'),
+                                    content: const Text(
+                                      'Are you sure you want to cancel this appointment?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed:
+                                            () => Navigator.pop(context, false),
+                                        child: const Text('No'),
+                                      ),
+                                      TextButton(
+                                        onPressed:
+                                            () => Navigator.pop(context, true),
+                                        child: const Text(
+                                          'Yes',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context, true),
-                                    child: const Text('Yes', style: TextStyle(color: Colors.red)),
-                                  ),
-                                ],
-                              ),
                             );
-                            
+
                             if (confirm == true) {
-                              await _updateAppointmentStatus(appointmentId, 'cancelled');
+                              await _updateAppointmentStatus(
+                                appointmentId,
+                                'cancelled',
+                              );
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
@@ -390,7 +413,9 @@ class AppointmentDetailsProvider extends StatelessWidget {
                                     backgroundColor: Color(0xFFF44336),
                                   ),
                                 );
-                                Navigator.pop(context); // Go back to previous screen
+                                Navigator.pop(
+                                  context,
+                                ); // Go back to previous screen
                               }
                             }
                           },
@@ -423,10 +448,7 @@ class AppointmentDetailsProvider extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Colors.grey.shade600,
-                        ),
+                        Icon(Icons.info_outline, color: Colors.grey.shade600),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(

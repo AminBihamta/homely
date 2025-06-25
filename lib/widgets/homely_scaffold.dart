@@ -149,8 +149,7 @@ class HomelyScaffold extends StatelessWidget {
               ),
           bottomNavigationBar: BottomNavigationBar(
             type: BottomNavigationBarType.fixed,
-            currentIndex:
-                isProvider ? selectedIndex : selectedIndex,
+            currentIndex: isProvider ? selectedIndex : selectedIndex,
             onTap: (i) => _onNavBarTap(context, i, isProvider),
             selectedItemColor: AppColors.highlight,
             unselectedItemColor: AppColors.primary,
