@@ -275,9 +275,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                         serviceId: serviceId,
                                         serviceName: data['name'] ?? '',
                                         companyName: data['companyName'] ?? '',
-                                        rating: data['rating'] ?? 4,
-                                        totalReviews:
-                                            data['totalReviews'] ?? 129,
                                       ),
                                 ),
                               );
