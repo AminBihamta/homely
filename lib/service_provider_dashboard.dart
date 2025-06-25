@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../serviceprovider/service_edit_screen.dart';
 import '../serviceprovider/service_form.dart';
+import '../serviceprovider/service_details_screen.dart';
 import '../screens/login_screen.dart';
 import '../services/auth_service.dart';
 import 'theme/colors.dart';
@@ -168,6 +169,20 @@ class _ServiceProviderDashboardState extends State<ServiceProviderDashboard> {
                       horizontal: 16,
                       vertical: 10,
                     ),
+                    onTap: () {
+                      // Navigate to service details screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) => ServiceDetailsScreen(
+                                serviceId: doc.id,
+                                serviceName: data['name'] ?? '',
+                                companyName: data['companyName'] ?? '',
+                              ),
+                        ),
+                      );
+                    },
                     title: Text(
                       data['name'] ?? '',
                       style: TextStyle(

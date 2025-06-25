@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../theme/colors.dart';
 import '../widgets/homely_scaffold.dart';
 import '../services/appointment_service.dart';
+import 'appointment_details_provider.dart';
 
 class ProviderRecentAppointmentsPage extends StatefulWidget {
   const ProviderRecentAppointmentsPage({super.key});
@@ -151,12 +152,26 @@ class _ProviderRecentAppointmentsPageState
                       children: [
                         // Service Name
                         if (serviceName.isNotEmpty)
-                          Text(
-                            serviceName,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF1A1A1A),
+                          GestureDetector(
+                            onTap: () {
+                              // Navigate to booking details for completed appointments
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AppointmentDetailsProvider(
+                                    appointment: appt,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              serviceName,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1A1A1A),
+                                decoration: TextDecoration.underline,
+                              ),
                             ),
                           ),
                         const SizedBox(height: 8),

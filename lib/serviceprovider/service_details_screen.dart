@@ -240,30 +240,39 @@ class ServiceDetailsScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (_) => BookAppointmentPage(
-                                        serviceId: serviceId,
-                                        providerId: '',
-                                        serviceName: serviceName,
+                          FutureBuilder<bool>(
+                            future: _isProvider(),
+                            builder: (context, snapshot) {
+                              final isProvider = snapshot.data ?? false;
+                              if (!isProvider) {
+                                return ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (_) => BookAppointmentPage(
+                                              serviceId: serviceId,
+                                              providerId: '',
+                                              serviceName: serviceName,
+                                            ),
                                       ),
-                                ),
-                              );
+                                    );
+                                  },
+                                  child: const Text(
+                                    "Book Appointment",
+                                    style: TextStyle(color: AppColors.background),
+                                  ),
+                                );
+                              }
+                              return const SizedBox.shrink();
                             },
-                            child: const Text(
-                              "Book Appointment",
-                              style: TextStyle(color: AppColors.background),
-                            ),
                           ),
                         ],
                       ),

@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../theme/colors.dart';
 import '../widgets/homely_scaffold.dart';
 import '../services/appointment_service.dart';
-import 'appointment_details_provider.dart';
+import '../serviceprovider/service_details_screen.dart';
 
 class ProviderPendingAppointmentsPage extends StatelessWidget {
   const ProviderPendingAppointmentsPage({super.key});
@@ -114,15 +114,28 @@ class ProviderPendingAppointmentsPage extends StatelessWidget {
 
                 return GestureDetector(
                   onTap: () {
-                    // Navigate to booking details instead of service details
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AppointmentDetailsProvider(
-                          appointment: appt,
+                    final serviceId = appt['serviceId'] ?? '';
+                    if (serviceId.isNotEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) => ServiceDetailsScreen(
+                                serviceId: serviceId,
+                                serviceName: serviceName,
+                                companyName: '',
+                              ),
                         ),
-                      ),
-                    );
+                      );
+                    } else {
+                      // Show a snackbar if serviceId is missing
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Service details not available'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   },
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 16),

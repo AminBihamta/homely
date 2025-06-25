@@ -39,6 +39,47 @@ class AppointmentDetailsProvider extends StatelessWidget {
     }
   }
 
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+        return const Color(0xFF4CAF50); // Green
+      case 'pending':
+        return const Color(0xFF9E9E9E); // Grey
+      case 'cancelled':
+        return const Color(0xFFF44336); // Red
+      case 'completed':
+        return const Color(0xFF4CAF50); // Green
+      default:
+        return const Color(0xFF9E9E9E); // Grey
+    }
+  }
+
+  String _getStatusDisplayText(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+        return 'Accepted';
+      case 'pending':
+        return 'Pending Approval';
+      case 'cancelled':
+        return 'Cancelled';
+      case 'completed':
+        return 'Completed';
+      default:
+        return 'Pending Approval';
+    }
+  }
+
+  Future<void> _updateAppointmentStatus(String appointmentId, String newStatus) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('appointments')
+          .doc(appointmentId)
+          .update({'status': newStatus});
+    } catch (e) {
+      print('Error updating appointment status: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final String? homeownerEmail = appointment['homeownerEmail'];
@@ -48,13 +89,15 @@ class AppointmentDetailsProvider extends StatelessWidget {
     final String? startTime = appointment['startTime'];
     final String? endTime = appointment['endTime'];
     final dynamic date = appointment['date'];
+    final String status = appointment['status'] ?? 'pending';
+    final String appointmentId = appointment['id'] ?? '';
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         title: const Text(
-          'Appointment Details',
+          'Booking Details',
           style: TextStyle(color: AppColors.background),
         ),
         iconTheme: const IconThemeData(color: AppColors.background),
@@ -70,6 +113,8 @@ class AppointmentDetailsProvider extends StatelessWidget {
           final requesterName =
               homeowner?['name'] ?? homeownerEmail ?? 'Unknown';
           final address = homeowner?['address'] ?? 'No address provided';
+          final email = homeowner?['email'] ?? homeownerEmail ?? 'No email';
+          
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -85,7 +130,51 @@ class AppointmentDetailsProvider extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Profile + Requested By + Address
+                
+                // Status Display
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(status).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: _getStatusColor(status)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(status),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Status: ${_getStatusDisplayText(status)}',
+                        style: TextStyle(
+                          color: _getStatusColor(status),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Customer Information Section
+                const Text(
+                  'Customer Information',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.text,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Profile + Customer Details
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -104,7 +193,7 @@ class AppointmentDetailsProvider extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Requested By',
+                            'Name',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -119,7 +208,33 @@ class AppointmentDetailsProvider extends StatelessWidget {
                               color: AppColors.text,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Email',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.text,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            email,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: AppColors.text,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Address',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.text,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
                           Text(
                             address,
                             style: const TextStyle(
@@ -207,32 +322,125 @@ class AppointmentDetailsProvider extends StatelessWidget {
                   style: const TextStyle(fontSize: 16, color: AppColors.text),
                 ),
                 const SizedBox(height: 40),
-                // Cancel Button
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: Implement cancel logic
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.background,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 40,
-                        vertical: 16,
+                
+                // Action Buttons - Only show for pending appointments
+                if (status.toLowerCase() == 'pending' && appointmentId.isNotEmpty) ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await _updateAppointmentStatus(appointmentId, 'accepted');
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Appointment accepted'),
+                                  backgroundColor: Color(0xFF4CAF50),
+                                ),
+                              );
+                              Navigator.pop(context); // Go back to previous screen
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4CAF50),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Accept',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            // Show confirmation dialog
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Cancel Appointment'),
+                                content: const Text('Are you sure you want to cancel this appointment?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text('No'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    child: const Text('Yes', style: TextStyle(color: Colors.red)),
+                                  ),
+                                ],
+                              ),
+                            );
+                            
+                            if (confirm == true) {
+                              await _updateAppointmentStatus(appointmentId, 'cancelled');
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Appointment cancelled'),
+                                    backgroundColor: Color(0xFFF44336),
+                                  ),
+                                );
+                                Navigator.pop(context); // Go back to previous screen
+                              }
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF44336),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
+                    ],
+                  ),
+                ] else if (status.toLowerCase() != 'pending') ...[
+                  // Show info message for non-pending appointments
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
-                      'Cancel Appointment',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'This appointment is ${_getStatusDisplayText(status).toLowerCase()}.',
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
+                ],
               ],
             ),
           );

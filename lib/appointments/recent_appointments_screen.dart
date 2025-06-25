@@ -5,6 +5,7 @@ import '../theme/colors.dart';
 import '../widgets/homely_scaffold.dart';
 import '../services/appointment_service.dart';
 import '../screens/create_review_screen.dart';
+import '../serviceprovider/service_details_screen.dart';
 
 class RecentAppointmentsPage extends StatefulWidget {
   const RecentAppointmentsPage({super.key});
