@@ -8,6 +8,7 @@ import '../appointments/current_appointments_screen.dart';
 import '../appointments/recent_appointments_screen.dart';
 import '../appointments/provider_pending_appointments_screen.dart';
 import '../appointments/provider_recent_appointments_screen.dart';
+import '../serviceprovider/provider_services_reviews_screen.dart';
 import '../theme/colors.dart';
 
 typedef NavBarBuilder = Widget Function(BuildContext context);
@@ -43,8 +44,8 @@ class HomelyScaffold extends StatelessWidget {
 
   void _onNavBarTap(BuildContext context, int index, bool isProvider) async {
     if (isProvider) {
-      // Provider navigation mapping: 0=home, 1=calendar, 2=history
-      if (index == _getProviderSelectedIndex()) return;
+      // Provider navigation mapping: 0=home, 1=calendar, 2=history, 3=reviews
+      if (index == selectedIndex) return;
 
       if (index == 0) {
         // Home
@@ -63,6 +64,14 @@ class HomelyScaffold extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (_) => const ProviderRecentAppointmentsPage(),
+          ),
+        );
+      } else if (index == 3) {
+        // Reviews (provider services reviews)
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const ProviderServicesReviewsScreen(),
           ),
         );
       }
@@ -141,7 +150,7 @@ class HomelyScaffold extends StatelessWidget {
           bottomNavigationBar: BottomNavigationBar(
             type: BottomNavigationBarType.fixed,
             currentIndex:
-                isProvider ? _getProviderSelectedIndex() : selectedIndex,
+                isProvider ? selectedIndex : selectedIndex,
             onTap: (i) => _onNavBarTap(context, i, isProvider),
             selectedItemColor: AppColors.highlight,
             unselectedItemColor: AppColors.primary,
@@ -190,11 +199,12 @@ class HomelyScaffold extends StatelessWidget {
   // Get appropriate bottom nav items based on user type
   List<BottomNavigationBarItem> _getBottomNavItems(bool isProvider) {
     if (isProvider) {
-      // Service providers: only home, calendar, history (3 items)
+      // Service providers: home, calendar, history, reviews (4 items)
       return const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
         BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ''),
         BottomNavigationBarItem(icon: Icon(Icons.history), label: ''),
+        BottomNavigationBarItem(icon: Icon(Icons.star), label: ''),
       ];
     } else {
       // Homeowners: home, menu (all services), calendar, history (4 items)
@@ -204,25 +214,6 @@ class HomelyScaffold extends StatelessWidget {
         BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ''),
         BottomNavigationBarItem(icon: Icon(Icons.history), label: ''),
       ];
-    }
-  }
-
-  // Convert homeowner selectedIndex to provider selectedIndex
-  int _getProviderSelectedIndex() {
-    // For providers, we need to map the 4-item homeowner navigation to 3-item provider navigation
-    // Homeowner: 0=home, 1=menu, 2=calendar, 3=history
-    // Provider:  0=home, 1=calendar, 2=history
-    switch (selectedIndex) {
-      case 0:
-        return 0; // home stays at 0
-      case 1:
-        return 0; // menu doesn't exist for providers, default to home
-      case 2:
-        return 1; // calendar moves from 2 to 1
-      case 3:
-        return 2; // history moves from 3 to 2
-      default:
-        return 0;
     }
   }
 }

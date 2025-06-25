@@ -92,7 +92,7 @@ class _ProviderRecentAppointmentsPageState
   @override
   Widget build(BuildContext context) {
     return HomelyScaffold(
-      selectedIndex: 3,
+      selectedIndex: 2, // History tab for providers
       body: Container(
         color: const Color(0xFFF5F5F5), // Light grey background
         child: StreamBuilder<List<Map<String, dynamic>>>(

@@ -82,7 +82,7 @@ class ProviderPendingAppointmentsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return HomelyScaffold(
-      selectedIndex: 2,
+      selectedIndex: 1, // Calendar tab for providers
       body: Container(
         color: const Color(0xFFF5F5F5),
         child: StreamBuilder<List<Map<String, dynamic>>>(
