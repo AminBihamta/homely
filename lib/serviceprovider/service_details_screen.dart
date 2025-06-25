@@ -221,49 +221,134 @@ class ServiceDetailsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Title and Book button
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Service name wrapped in Expanded and Text with softWrap and maxLines
-                          Expanded(
-                            child: Text(
-                              serviceName,
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.text,
-                              ),
-                              softWrap: true,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                          // Service name
+                          Text(
+                            serviceName,
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.text,
                             ),
+                            softWrap: true,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(width: 12),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (_) => BookAppointmentPage(
-                                        serviceId: serviceId,
-                                        providerId: '',
-                                        serviceName: serviceName,
-                                      ),
+                          const SizedBox(height: 16),
+                          
+                          // Description Section
+                          FutureBuilder<DocumentSnapshot>(
+                            future:
+                                FirebaseFirestore.instance
+                                    .collection('services')
+                                    .doc(serviceId)
+                                    .get(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 0),
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                );
+                              }
+                              if (!snapshot.hasData || !snapshot.data!.exists) {
+                                return const Text(
+                                  'No description available.',
+                                  style: TextStyle(color: Colors.grey),
+                                );
+                              }
+                              final data = snapshot.data!.data() as Map<String, dynamic>?;
+                              final description =
+                                  data?['description'] ?? 'No description provided.';
+                              return Text(
+                                description,
+                                style: const TextStyle(
+                                  color: AppColors.text,
+                                  fontSize: 15,
                                 ),
                               );
                             },
-                            child: const Text(
-                              "Book Appointment",
-                              style: TextStyle(color: AppColors.background),
-                            ),
+                          ),
+                          
+                          const SizedBox(height: 16),
+                          
+                          // Buttons Row
+                          FutureBuilder<bool>(
+                            future: _isProvider(),
+                            builder: (context, snapshot) {
+                              final isProvider = snapshot.data ?? false;
+                              return Row(
+                                children: [
+                                  // Review Service button for non-providers
+                                  if (!isProvider) ...[
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.highlight,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                        ),
+                                        onPressed: () async {
+                                          // Fetch providerId for the service
+                                          final serviceDoc =
+                                              await FirebaseFirestore.instance
+                                                  .collection('services')
+                                                  .doc(serviceId)
+                                                  .get();
+                                          final providerId =
+                                              serviceDoc.data()?['user_id'] ?? '';
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder:
+                                                  (_) => CreateReviewScreen(
+                                                    serviceId: serviceId,
+                                                    providerId: providerId,
+                                                    serviceName: serviceName,
+                                                  ),
+                                            ),
+                                          );
+                                        },
+                                        child: const Text(
+                                          'Review Service',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                  ],
+                                  // Book Appointment button
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primary,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (_) => BookAppointmentPage(
+                                                  serviceId: serviceId,
+                                                  providerId: '',
+                                                  serviceName: serviceName,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                      child: const Text(
+                                        "Book Appointment",
+                                        style: TextStyle(color: AppColors.background),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -334,53 +419,6 @@ class ServiceDetailsScreen extends StatelessWidget {
                               ],
                             ),
                           );
-                        },
-                      ),
-
-                      // Review button for non-providers
-                      FutureBuilder<bool>(
-                        future: _isProvider(),
-                        builder: (context, snapshot) {
-                          final isProvider = snapshot.data ?? false;
-                          if (!isProvider) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.highlight,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                onPressed: () async {
-                                  // Fetch providerId for the service
-                                  final serviceDoc =
-                                      await FirebaseFirestore.instance
-                                          .collection('services')
-                                          .doc(serviceId)
-                                          .get();
-                                  final providerId =
-                                      serviceDoc.data()?['user_id'] ?? '';
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (_) => CreateReviewScreen(
-                                            serviceId: serviceId,
-                                            providerId: providerId,
-                                            serviceName: serviceName,
-                                          ),
-                                    ),
-                                  );
-                                },
-                                child: const Text(
-                                  'Review Service',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            );
-                          }
-                          return const SizedBox.shrink();
                         },
                       ),
 
@@ -547,214 +585,188 @@ class ServiceDetailsScreen extends StatelessWidget {
                           );
                         },
                       ),
-                    ],
-                  ),
-                ),
-                // Description Section
-                const SizedBox(height: 16),
-                const Text(
-                  'Description',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
-                    color: AppColors.text,
-                  ),
-                ),
-                FutureBuilder<DocumentSnapshot>(
-                  future:
-                      FirebaseFirestore.instance
-                          .collection('services')
-                          .doc(serviceId)
-                          .get(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      );
-                    }
-                    if (!snapshot.hasData || !snapshot.data!.exists) {
-                      return const Text(
-                        'No description available.',
-                        style: TextStyle(color: Colors.grey),
-                      );
-                    }
-                    final data = snapshot.data!.data() as Map<String, dynamic>?;
-                    final description =
-                        data?['description'] ?? 'No description provided.';
-                    final providerId = data?['user_id'] ?? '';
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            description,
-                            style: const TextStyle(
-                              color: AppColors.text,
-                              fontSize: 15,
-                            ),
-                          ),
+
+                      // Other Services Section
+                      const SizedBox(height: 28),
+                      const Text(
+                        'Other Services',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                          color: AppColors.text,
                         ),
-                        const SizedBox(height: 28),
-                        const Text(
-                          'Other Services',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 24,
-                            color: AppColors.text,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          height: 170,
-                          child: StreamBuilder<QuerySnapshot>(
-                            stream:
-                                FirebaseFirestore.instance
-                                    .collection('services')
-                                    .where('user_id', isEqualTo: providerId)
-                                    .snapshots(),
-                            builder: (context, otherSnapshot) {
-                              if (otherSnapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                );
-                              }
-                              if (!otherSnapshot.hasData ||
-                                  otherSnapshot.data!.docs.isEmpty) {
-                                return const Text(
-                                  'No other services available.',
-                                  style: TextStyle(color: Colors.grey),
-                                );
-                              }
-                              final otherDocs =
-                                  otherSnapshot.data!.docs
-                                      .where((doc) => doc.id != serviceId)
-                                      .toList();
-                              if (otherDocs.isEmpty) {
-                                return const Text(
-                                  'No other services available.',
-                                  style: TextStyle(color: Colors.grey),
-                                );
-                              }
-                              return ListView.separated(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: otherDocs.length,
-                                separatorBuilder:
-                                    (context, idx) => const SizedBox(width: 12),
-                                itemBuilder: (context, idx) {
-                                  final doc = otherDocs[idx];
-                                  final d = doc.data() as Map<String, dynamic>;
-                                  return GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (_) => ServiceDetailsScreen(
-                                                serviceId: doc.id,
-                                                serviceName: d['name'] ?? '',
-                                                companyName: '',
-                                              ),
-                                        ),
-                                      );
-                                    },
-                                    child: Container(
-                                      width: 180,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(16),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.07,
-                                            ),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 170,
+                        child: FutureBuilder<DocumentSnapshot>(
+                          future:
+                              FirebaseFirestore.instance
+                                  .collection('services')
+                                  .doc(serviceId)
+                                  .get(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              );
+                            }
+                            if (!snapshot.hasData || !snapshot.data!.exists) {
+                              return const Text(
+                                'No other services available.',
+                                style: TextStyle(color: Colors.grey),
+                              );
+                            }
+                            final data = snapshot.data!.data() as Map<String, dynamic>?;
+                            final providerId = data?['user_id'] ?? '';
+                            
+                            return StreamBuilder<QuerySnapshot>(
+                              stream:
+                                  FirebaseFirestore.instance
+                                      .collection('services')
+                                      .where('user_id', isEqualTo: providerId)
+                                      .snapshots(),
+                              builder: (context, otherSnapshot) {
+                                if (otherSnapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  );
+                                }
+                                if (!otherSnapshot.hasData ||
+                                    otherSnapshot.data!.docs.isEmpty) {
+                                  return const Text(
+                                    'No other services available.',
+                                    style: TextStyle(color: Colors.grey),
+                                  );
+                                }
+                                final otherDocs =
+                                    otherSnapshot.data!.docs
+                                        .where((doc) => doc.id != serviceId)
+                                        .toList();
+                                if (otherDocs.isEmpty) {
+                                  return const Text(
+                                    'No other services available.',
+                                    style: TextStyle(color: Colors.grey),
+                                  );
+                                }
+                                return ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: otherDocs.length,
+                                  separatorBuilder:
+                                      (context, idx) => const SizedBox(width: 12),
+                                  itemBuilder: (context, idx) {
+                                    final doc = otherDocs[idx];
+                                    final d = doc.data() as Map<String, dynamic>;
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (_) => ServiceDetailsScreen(
+                                                  serviceId: doc.id,
+                                                  serviceName: d['name'] ?? '',
+                                                  companyName: '',
+                                                ),
                                           ),
-                                        ],
-                                      ),
-                                      margin: const EdgeInsets.symmetric(
-                                        vertical: 4,
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.work,
-                                                  color: AppColors.primary,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Expanded(
-                                                  child: Text(
-                                                    d['name'] ?? '',
-                                                    style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 15,
-                                                      color: AppColors.text,
-                                                    ),
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              d['description'] ?? '',
-                                              style: const TextStyle(
-                                                color: AppColors.text,
-                                                fontSize: 13,
+                                        );
+                                      },
+                                      child: Container(
+                                        width: 180,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(16),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.07,
                                               ),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const Spacer(),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text(
-                                                  'RM${(d['hourly_rate'] ?? 0).toString()}',
-                                                  style: const TextStyle(
-                                                    color: AppColors.highlight,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                const Icon(
-                                                  Icons.arrow_forward_ios,
-                                                  size: 16,
-                                                  color: AppColors.primary,
-                                                ),
-                                              ],
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
                                             ),
                                           ],
                                         ),
+                                        margin: const EdgeInsets.symmetric(
+                                          vertical: 4,
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.work,
+                                                    color: AppColors.primary,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      d['name'] ?? '',
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 15,
+                                                        color: AppColors.text,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                d['description'] ?? '',
+                                                style: const TextStyle(
+                                                  color: AppColors.text,
+                                                  fontSize: 13,
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const Spacer(),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    'RM${(d['hourly_rate'] ?? 0).toString()}',
+                                                    style: const TextStyle(
+                                                      color: AppColors.highlight,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  const Icon(
+                                                    Icons.arrow_forward_ios,
+                                                    size: 16,
+                                                    color: AppColors.primary,
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
+                                    );
+                                  },
+                                );
+                              },
+                            );
+                          },
                         ),
-                        const SizedBox(
-                          height: 32,
-                        ), // Add bottom padding for overflow protection
-                      ],
-                    );
-                  },
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
