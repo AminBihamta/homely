@@ -237,6 +237,74 @@ class ServiceDetailsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           
+                          // Average Rating Section
+                          FutureBuilder<Map<String, dynamic>>(
+                            future: ReviewService.getServiceRatingStats(serviceId),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const SizedBox(height: 8);
+                              }
+
+                              if (!snapshot.hasData) {
+                                return const SizedBox(height: 8);
+                              }
+
+                              final stats = snapshot.data!;
+                              final averageRating =
+                                  stats['averageRating'] as double;
+                              final totalReviews = stats['totalReviews'] as int;
+
+                              if (totalReviews == 0) {
+                                return const Padding(
+                                  padding: EdgeInsets.only(top: 8.0, bottom: 16.0),
+                                  child: Text(
+                                    'No reviews yet',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 8.0,
+                                  bottom: 16.0,
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Star rating display
+                                    Row(
+                                      children: List.generate(5, (index) {
+                                        return Icon(
+                                          index < averageRating.floor()
+                                              ? Icons.star
+                                              : (index < averageRating &&
+                                                  averageRating % 1 >= 0.5)
+                                              ? Icons.star_half
+                                              : Icons.star_border,
+                                          color: Colors.amber,
+                                          size: 20,
+                                        );
+                                      }),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '${averageRating.toStringAsFixed(1)} ($totalReviews review${totalReviews == 1 ? '' : 's'})',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.text,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                          
                           // Description Section
                           FutureBuilder<DocumentSnapshot>(
                             future:
@@ -353,74 +421,6 @@ class ServiceDetailsScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
-
-                      // Average Rating Section - moved here under service name
-                      FutureBuilder<Map<String, dynamic>>(
-                        future: ReviewService.getServiceRatingStats(serviceId),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const SizedBox(height: 8);
-                          }
-
-                          if (!snapshot.hasData) {
-                            return const SizedBox(height: 8);
-                          }
-
-                          final stats = snapshot.data!;
-                          final averageRating =
-                              stats['averageRating'] as double;
-                          final totalReviews = stats['totalReviews'] as int;
-
-                          if (totalReviews == 0) {
-                            return const Padding(
-                              padding: EdgeInsets.only(top: 8.0, bottom: 16.0),
-                              child: Text(
-                                'No reviews yet',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            );
-                          }
-
-                          return Padding(
-                            padding: const EdgeInsets.only(
-                              top: 8.0,
-                              bottom: 16.0,
-                            ),
-                            child: Row(
-                              children: [
-                                // Star rating display
-                                Row(
-                                  children: List.generate(5, (index) {
-                                    return Icon(
-                                      index < averageRating.floor()
-                                          ? Icons.star
-                                          : (index < averageRating &&
-                                              averageRating % 1 >= 0.5)
-                                          ? Icons.star_half
-                                          : Icons.star_border,
-                                      color: Colors.amber,
-                                      size: 20,
-                                    );
-                                  }),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  '${averageRating.toStringAsFixed(1)} ($totalReviews review${totalReviews == 1 ? '' : 's'})',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.text,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
 
                       // Reviews Section
                       const SizedBox(height: 8),
