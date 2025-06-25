@@ -357,50 +357,50 @@ class ServiceDetailsScreen extends StatelessWidget {
                             future: _isProvider(),
                             builder: (context, snapshot) {
                               final isProvider = snapshot.data ?? false;
+                              if (isProvider) {
+                                return const SizedBox.shrink(); // Hide all buttons for providers
+                              }
                               return Row(
                                 children: [
-                                  // Review Service button for non-providers
-                                  if (!isProvider) ...[
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors.highlight,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
+                                  // Review Service button
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.highlight,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            20,
                                           ),
                                         ),
-                                        onPressed: () async {
-                                          // Fetch providerId for the service
-                                          final serviceDoc =
-                                              await FirebaseFirestore.instance
-                                                  .collection('services')
-                                                  .doc(serviceId)
-                                                  .get();
-                                          final providerId =
-                                              serviceDoc.data()?['user_id'] ??
-                                              '';
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (_) => CreateReviewScreen(
-                                                    serviceId: serviceId,
-                                                    providerId: providerId,
-                                                    serviceName: serviceName,
-                                                  ),
-                                            ),
-                                          );
-                                        },
-                                        child: const Text(
-                                          'Review Service',
-                                          style: TextStyle(color: Colors.white),
-                                        ),
+                                      ),
+                                      onPressed: () async {
+                                        // Fetch providerId for the service
+                                        final serviceDoc =
+                                            await FirebaseFirestore.instance
+                                                .collection('services')
+                                                .doc(serviceId)
+                                                .get();
+                                        final providerId =
+                                            serviceDoc.data()?['user_id'] ?? '';
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (_) => CreateReviewScreen(
+                                                  serviceId: serviceId,
+                                                  providerId: providerId,
+                                                  serviceName: serviceName,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                      child: const Text(
+                                        'Review Service',
+                                        style: TextStyle(color: Colors.white),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
-                                  ],
+                                  ),
+                                  const SizedBox(width: 12),
                                   // Book Appointment button
                                   Expanded(
                                     child: ElevatedButton(
