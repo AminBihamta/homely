@@ -4,8 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/login_screen.dart';
 import '../home_screen.dart';
 import '../appointments/current_appointments_screen.dart';
-import '../appointments/pending_appointments_screen.dart';
 import '../appointments/recent_appointments_screen.dart';
+import '../appointments/provider_pending_appointments_screen.dart';
+import '../appointments/provider_recent_appointments_screen.dart';
 import '../theme/colors.dart';
 
 typedef NavBarBuilder = Widget Function(BuildContext context);
@@ -81,7 +82,7 @@ class HomelyScaffold extends StatelessWidget {
         if (isProvider) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const PendingAppointmentsPage()),
+            MaterialPageRoute(builder: (_) => const ProviderPendingAppointmentsPage()),
           );
         } else {
           Navigator.pushReplacement(
@@ -97,10 +98,34 @@ class HomelyScaffold extends StatelessWidget {
         );
       }
     } else if (index == 3) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const RecentAppointmentsPage()),
-      );
+      // Check if user is provider
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final doc =
+            await FirebaseFirestore.instance
+                .collection('user_data')
+                .doc(user.uid)
+                .get();
+        final data = doc.data() ?? {};
+        final isProvider = data['isProvider'] == true;
+        if (isProvider) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const ProviderRecentAppointmentsPage()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const RecentAppointmentsPage()),
+          );
+        }
+      } else {
+        // fallback: go to homeowner recent appointments
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const RecentAppointmentsPage()),
+        );
+      }
     }
   }
 

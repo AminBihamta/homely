@@ -159,4 +159,142 @@ class AppointmentService {
           return appointments;
         });
   }
+
+  // Get completed appointments for service providers - only shows appointments for their services
+  static Stream<List<Map<String, dynamic>>> getProviderCompletedAppointments() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const Stream.empty();
+
+    return FirebaseFirestore.instance
+        .collection('appointments')
+        .where('status', isEqualTo: 'completed')
+        .snapshots()
+        .asyncMap((snapshot) async {
+          List<Map<String, dynamic>> providerAppointments = [];
+          
+          // Get all user's services first
+          final userServicesSnapshot = await FirebaseFirestore.instance
+              .collection('services')
+              .where('user_id', isEqualTo: user.uid)
+              .get();
+              
+          final userServiceIds = userServicesSnapshot.docs.map((doc) => doc.id).toSet();
+          
+          // Filter appointments to only include those for the provider's services
+          for (final doc in snapshot.docs) {
+            final data = doc.data();
+            final serviceId = data['serviceId'] as String?;
+            
+            if (serviceId != null && userServiceIds.contains(serviceId)) {
+              providerAppointments.add({...data, 'id': doc.id});
+            }
+          }
+          
+          // Sort by completedAt date, newest first
+          providerAppointments.sort((a, b) {
+            try {
+              final aCompletedAt = a['completedAt'];
+              final bCompletedAt = b['completedAt'];
+              
+              if (aCompletedAt == null && bCompletedAt == null) return 0;
+              if (aCompletedAt == null) return 1;
+              if (bCompletedAt == null) return -1;
+              
+              DateTime aDate, bDate;
+              
+              if (aCompletedAt is Timestamp) {
+                aDate = aCompletedAt.toDate();
+              } else if (aCompletedAt is DateTime) {
+                aDate = aCompletedAt;
+              } else {
+                return 1;
+              }
+              
+              if (bCompletedAt is Timestamp) {
+                bDate = bCompletedAt.toDate();
+              } else if (bCompletedAt is DateTime) {
+                bDate = bCompletedAt;
+              } else {
+                return -1;
+              }
+              
+              return bDate.compareTo(aDate); // Newest first
+            } catch (e) {
+              print('Error sorting provider appointments: $e');
+              return 0;
+            }
+          });
+          
+          return providerAppointments;
+        });
+  }
+
+  // Get pending appointments for service providers - only shows appointments for their services
+  static Stream<List<Map<String, dynamic>>> getProviderPendingAppointments() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const Stream.empty();
+
+    return FirebaseFirestore.instance
+        .collection('appointments')
+        .where('status', isEqualTo: 'pending')
+        .snapshots()
+        .asyncMap((snapshot) async {
+          List<Map<String, dynamic>> providerAppointments = [];
+          
+          // Get all user's services first
+          final userServicesSnapshot = await FirebaseFirestore.instance
+              .collection('services')
+              .where('user_id', isEqualTo: user.uid)
+              .get();
+              
+          final userServiceIds = userServicesSnapshot.docs.map((doc) => doc.id).toSet();
+          
+          // Filter appointments to only include those for the provider's services
+          for (final doc in snapshot.docs) {
+            final data = doc.data();
+            final serviceId = data['serviceId'] as String?;
+            
+            if (serviceId != null && userServiceIds.contains(serviceId)) {
+              providerAppointments.add({...data, 'id': doc.id});
+            }
+          }
+          
+          // Sort by creation date, newest first
+          providerAppointments.sort((a, b) {
+            try {
+              final aCreatedAt = a['createdAt'];
+              final bCreatedAt = b['createdAt'];
+              
+              if (aCreatedAt == null && bCreatedAt == null) return 0;
+              if (aCreatedAt == null) return 1;
+              if (bCreatedAt == null) return -1;
+              
+              DateTime aDate, bDate;
+              
+              if (aCreatedAt is Timestamp) {
+                aDate = aCreatedAt.toDate();
+              } else if (aCreatedAt is DateTime) {
+                aDate = aCreatedAt;
+              } else {
+                return 1;
+              }
+              
+              if (bCreatedAt is Timestamp) {
+                bDate = bCreatedAt.toDate();
+              } else if (bCreatedAt is DateTime) {
+                bDate = bCreatedAt;
+              } else {
+                return -1;
+              }
+              
+              return bDate.compareTo(aDate); // Newest first
+            } catch (e) {
+              print('Error sorting provider pending appointments: $e');
+              return 0;
+            }
+          });
+          
+          return providerAppointments;
+        });
+  }
 }
