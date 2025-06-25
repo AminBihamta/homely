@@ -433,7 +433,7 @@ class _CurrentAppointmentsPageState extends State<CurrentAppointmentsPage> {
                                               .collection('appointments')
                                               .doc(appt['id'])
                                               .update({'status': 'cancelled'});
-                                          
+
                                           if (context.mounted) {
                                             ScaffoldMessenger.of(
                                               context,
@@ -450,11 +450,15 @@ class _CurrentAppointmentsPageState extends State<CurrentAppointmentsPage> {
                                           }
                                         } catch (e) {
                                           if (context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
                                               SnackBar(
-                                                content: Text('Failed to cancel: $e'),
+                                                content: Text(
+                                                  'Failed to cancel: $e',
+                                                ),
                                                 backgroundColor: Colors.red,
-                                              )
+                                              ),
                                             );
                                           }
                                         }

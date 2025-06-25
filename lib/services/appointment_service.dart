@@ -22,17 +22,21 @@ class AppointmentService {
     return FirebaseFirestore.instance
         .collection('appointments')
         .where('homeownerId', isEqualTo: user.uid)
-        .where('status', whereIn: ['pending', 'accepted']) // Only get active appointments
+        .where(
+          'status',
+          whereIn: ['pending', 'accepted'],
+        ) // Only get active appointments
         .snapshots()
-        .map(
-          (snapshot) {
-            final appointments = snapshot.docs
-                .map((doc) => {...doc.data(), 'id': doc.id})
-                .toList();
-            print('Fetched ${appointments.length} active appointments for user ${user.uid}');
-            return appointments;
-          },
-        );
+        .map((snapshot) {
+          final appointments =
+              snapshot.docs
+                  .map((doc) => {...doc.data(), 'id': doc.id})
+                  .toList();
+          print(
+            'Fetched ${appointments.length} active appointments for user ${user.uid}',
+          );
+          return appointments;
+        });
   }
 
   static Future<void> editAppointment(
@@ -324,7 +328,9 @@ class AppointmentService {
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> providerAppointments = [];
-          print('Fetched ${snapshot.docs.length} pending/accepted appointments');
+          print(
+            'Fetched ${snapshot.docs.length} pending/accepted appointments',
+          );
 
           // Get all user's services first
           final userServicesSnapshot =
@@ -344,10 +350,14 @@ class AppointmentService {
             final appointmentStatus = data['status'] as String? ?? 'unknown';
 
             if (serviceId != null && userServiceIds.contains(serviceId)) {
-              print('Including appointment ${doc.id} with status $appointmentStatus');
+              print(
+                'Including appointment ${doc.id} with status $appointmentStatus',
+              );
               providerAppointments.add({...data, 'id': doc.id});
             } else {
-              print('Skipping appointment ${doc.id} - serviceId: $serviceId, status: $appointmentStatus');
+              print(
+                'Skipping appointment ${doc.id} - serviceId: $serviceId, status: $appointmentStatus',
+              );
             }
           }
 
@@ -386,7 +396,9 @@ class AppointmentService {
             }
           });
 
-          print('Returning ${providerAppointments.length} provider appointments');
+          print(
+            'Returning ${providerAppointments.length} provider appointments',
+          );
           return providerAppointments;
         });
   }
