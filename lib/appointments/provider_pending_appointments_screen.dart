@@ -85,7 +85,7 @@ class ProviderPendingAppointmentsPage extends StatelessWidget {
       body: Container(
         color: const Color(0xFFF5F5F5),
         child: StreamBuilder<List<Map<String, dynamic>>>(
-          stream: AppointmentService.getProviderPendingAppointments(),
+          stream: AppointmentService.getProviderCurrentAppointments(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -94,7 +94,7 @@ class ProviderPendingAppointmentsPage extends StatelessWidget {
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
               return const Center(
                 child: Text(
-                  'No pending appointments',
+                  'No current appointments',
                   style: TextStyle(color: AppColors.text, fontSize: 16),
                 ),
               );
@@ -194,72 +194,82 @@ class ProviderPendingAppointmentsPage extends StatelessWidget {
                                 Container(
                                   width: 8,
                                   height: 8,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF9E9E9E),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        appt['status'] == 'accepted'
+                                            ? Colors.green
+                                            : const Color(0xFF9E9E9E),
                                     shape: BoxShape.circle,
                                   ),
                                 ),
                                 const SizedBox(width: 6),
-                                const Text(
-                                  'Pending',
+                                Text(
+                                  appt['status'] == 'accepted'
+                                      ? 'Accepted'
+                                      : 'Pending',
                                   style: TextStyle(
-                                    color: Color(0xFF9E9E9E),
+                                    color:
+                                        appt['status'] == 'accepted'
+                                            ? Colors.green
+                                            : const Color(0xFF9E9E9E),
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],
                             ),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF5F5F5),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: IconButton(
-                                    icon: const Icon(
-                                      Icons.check_circle,
-                                      color: Colors.green,
-                                      size: 18,
+                            // Only show action buttons for pending appointments
+                            if (appt['status'] == 'pending')
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF5F5F5),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    tooltip: 'Accept Appointment',
-                                    onPressed:
-                                        () => _updateAppointmentStatus(
-                                          context,
-                                          appointmentId,
-                                          'accepted',
-                                        ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFFEBEE),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: IconButton(
-                                    icon: const Icon(
-                                      Icons.cancel,
-                                      color: Color(0xFFE53E3E),
-                                      size: 18,
+                                    child: IconButton(
+                                      icon: const Icon(
+                                        Icons.check_circle,
+                                        color: Colors.green,
+                                        size: 18,
+                                      ),
+                                      tooltip: 'Accept Appointment',
+                                      onPressed:
+                                          () => _updateAppointmentStatus(
+                                            context,
+                                            appointmentId,
+                                            'accepted',
+                                          ),
                                     ),
-                                    tooltip: 'Reject Appointment',
-                                    onPressed:
-                                        () => _updateAppointmentStatus(
-                                          context,
-                                          appointmentId,
-                                          'cancelled',
-                                        ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFEBEE),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: IconButton(
+                                      icon: const Icon(
+                                        Icons.cancel,
+                                        color: Color(0xFFE53E3E),
+                                        size: 18,
+                                      ),
+                                      tooltip: 'Reject Appointment',
+                                      onPressed:
+                                          () => _updateAppointmentStatus(
+                                            context,
+                                            appointmentId,
+                                            'cancelled',
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                           ],
                         ),
                       ],

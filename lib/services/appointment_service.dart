@@ -302,4 +302,75 @@ class AppointmentService {
           return providerAppointments;
         });
   }
+
+  // Get current appointments for service providers - shows both pending and accepted appointments
+  static Stream<List<Map<String, dynamic>>> getProviderCurrentAppointments() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const Stream.empty();
+
+    return FirebaseFirestore.instance
+        .collection('appointments')
+        .where('status', whereIn: ['pending', 'accepted'])
+        .snapshots()
+        .asyncMap((snapshot) async {
+          List<Map<String, dynamic>> providerAppointments = [];
+
+          // Get all user's services first
+          final userServicesSnapshot =
+              await FirebaseFirestore.instance
+                  .collection('services')
+                  .where('user_id', isEqualTo: user.uid)
+                  .get();
+
+          final userServiceIds =
+              userServicesSnapshot.docs.map((doc) => doc.id).toSet();
+
+          // Filter appointments to only include those for the provider's services
+          for (final doc in snapshot.docs) {
+            final data = doc.data();
+            final serviceId = data['serviceId'] as String?;
+
+            if (serviceId != null && userServiceIds.contains(serviceId)) {
+              providerAppointments.add({...data, 'id': doc.id});
+            }
+          }
+
+          // Sort by creation date, newest first
+          providerAppointments.sort((a, b) {
+            try {
+              final aCreatedAt = a['createdAt'];
+              final bCreatedAt = b['createdAt'];
+
+              if (aCreatedAt == null && bCreatedAt == null) return 0;
+              if (aCreatedAt == null) return 1;
+              if (bCreatedAt == null) return -1;
+
+              DateTime aDate, bDate;
+
+              if (aCreatedAt is Timestamp) {
+                aDate = aCreatedAt.toDate();
+              } else if (aCreatedAt is DateTime) {
+                aDate = aCreatedAt;
+              } else {
+                return 1;
+              }
+
+              if (bCreatedAt is Timestamp) {
+                bDate = bCreatedAt.toDate();
+              } else if (bCreatedAt is DateTime) {
+                bDate = bCreatedAt;
+              } else {
+                return -1;
+              }
+
+              return bDate.compareTo(aDate); // Newest first
+            } catch (e) {
+              print('Error sorting provider current appointments: $e');
+              return 0;
+            }
+          });
+
+          return providerAppointments;
+        });
+  }
 }
