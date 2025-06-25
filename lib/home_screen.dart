@@ -18,6 +18,30 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String selectedCategory = 'Electrical';
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Filter services based on search query
+  List<QueryDocumentSnapshot> _filterServices(List<QueryDocumentSnapshot> docs) {
+    if (_searchQuery.isEmpty) {
+      return docs;
+    }
+    
+    return docs.where((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final serviceName = (data['name'] ?? '').toString().toLowerCase();
+      final serviceDescription = (data['description'] ?? '').toString().toLowerCase();
+      
+      return serviceName.contains(_searchQuery) || 
+             serviceDescription.contains(_searchQuery);
+    }).toList();
+  }
 
   void logout(BuildContext context) {
     AuthService.signOut();
@@ -107,15 +131,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 10),
                 TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value.toLowerCase().trim();
+                    });
+                  },
                   decoration: InputDecoration(
                     hintText: 'What service do you need?',
                     hintStyle: const TextStyle(color: AppColors.text),
                     prefixIcon: const Icon(
                       Icons.search,
-                      color: AppColors.primary,
-                    ),
-                    suffixIcon: const Icon(
-                      Icons.tune,
                       color: AppColors.primary,
                     ),
                     filled: true,
@@ -207,8 +233,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             selectedColor: AppColors.highlight,
                             backgroundColor: AppColors.background,
                             showCheckmark: false, // <-- Add this line
-                            onSelected:
-                                (_) => setState(() => selectedCategory = cat),
+                            onSelected: (_) {
+                              setState(() {
+                                selectedCategory = cat;
+                                _searchQuery = '';
+                                _searchController.clear();
+                              });
+                            },
                           );
                         },
                       );
@@ -217,26 +248,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '$selectedCategory Services For You',
+                  _searchQuery.isEmpty 
+                      ? '$selectedCategory Services For You'
+                      : 'Search Results',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.text,
                   ),
                 ),
-                const Text(
-                  'Our recommended services based on your preference',
-                  style: TextStyle(color: AppColors.text),
+                Text(
+                  _searchQuery.isEmpty 
+                      ? 'Our recommended services based on your preference'
+                      : 'Services matching "$_searchQuery"',
+                  style: const TextStyle(color: AppColors.text),
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
                   height:
                       235, // Increased height to accommodate dynamic content
                   child: StreamBuilder<QuerySnapshot>(
-                    stream:
-                        FirebaseFirestore.instance
+                    stream: _searchQuery.isEmpty
+                        ? FirebaseFirestore.instance
                             .collection('services')
                             .where('category', isEqualTo: selectedCategory)
+                            .snapshots()
+                        : FirebaseFirestore.instance
+                            .collection('services')
                             .snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -257,14 +295,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
 
                       final docs = snapshot.data!.docs;
+                      final filteredDocs = _filterServices(docs);
+
+                      if (filteredDocs.isEmpty) {
+                        return Center(
+                          child: Text(
+                            _searchQuery.isEmpty 
+                                ? 'No services available' 
+                                : 'No services found for "$_searchQuery"',
+                            style: const TextStyle(color: AppColors.text),
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      }
 
                       return ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        itemCount: docs.length,
+                        itemCount: filteredDocs.length,
                         itemBuilder: (context, index) {
                           final data =
-                              docs[index].data() as Map<String, dynamic>;
-                          final serviceId = docs[index].id;
+                              filteredDocs[index].data() as Map<String, dynamic>;
+                          final serviceId = filteredDocs[index].id;
                           final providerId = data['provider_id'] ?? '';
 
                           return GestureDetector(
