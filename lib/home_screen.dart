@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../services/review_service.dart';
 import '../screens/login_screen.dart';
 import 'theme/colors.dart';
 import '../appointments/book_appointment_screen.dart';
@@ -229,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
-                  height: 218, // Increased height to prevent overflow
+                  height: 220, // Increased height to accommodate dynamic content
                   child: StreamBuilder<QuerySnapshot>(
                     stream:
                         FirebaseFirestore.instance
@@ -283,9 +284,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: 180,
                               margin: const EdgeInsets.only(
                                 right: 12,
-                                bottom: 2,
-                                top: 2,
-                              ), // reduced vertical margin
+                                bottom: 4,
+                                top: 4,
+                              ), // Increased vertical margin for breathing room
                               child: Card(
                                 color: AppColors.background,
                                 elevation: 2,
@@ -297,22 +298,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                     8,
                                     8,
                                     8,
-                                    4,
-                                  ), // less bottom padding
+                                    8,
+                                  ), // Consistent padding
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       Container(
-                                        height: 90,
+                                        height: 85, // Slightly reduced image height
                                         width: double.infinity,
                                         decoration: BoxDecoration(
                                           borderRadius: BorderRadius.circular(
                                             8,
                                           ),
-                                          color: AppColors.primary.withOpacity(
-                                            0.1,
+                                          color: AppColors.primary.withValues(
+                                            alpha: 0.1,
                                           ),
                                         ),
                                         child: const Icon(
@@ -321,28 +322,125 @@ class _HomeScreenState extends State<HomeScreen> {
                                           color: AppColors.primary,
                                         ),
                                       ),
-                                      const SizedBox(height: 8),
+                                      const SizedBox(height: 6), // Reduced spacing
                                       Text(
                                         data['name'] ?? 'Service Name',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.text,
+                                          fontSize: 14, // Slightly smaller font
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: List.generate(
-                                          5,
-                                          (_) => const Icon(
-                                            Icons.star,
-                                            color: AppColors.highlight,
-                                            size: 16,
-                                          ),
-                                        ),
+                                      const SizedBox(height: 3), // Reduced spacing
+                                      // Dynamic reviews display
+                                      FutureBuilder<Map<String, dynamic>>(
+                                        future:
+                                            ReviewService.getServiceRatingStats(
+                                              serviceId,
+                                            ),
+                                        builder: (context, reviewSnapshot) {
+                                          if (reviewSnapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return const SizedBox(
+                                              height: 18, // Slightly reduced height
+                                              child: Row(
+                                                children: [
+                                                  SizedBox(
+                                                    width: 12,
+                                                    height: 12,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          strokeWidth: 1,
+                                                        ),
+                                                  ),
+                                                  SizedBox(width: 8),
+                                                  Text(
+                                                    'Loading...',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }
+
+                                          if (!reviewSnapshot.hasData) {
+                                            return const SizedBox(
+                                              height: 18, // Consistent height
+                                              child: Text(
+                                                'No reviews yet',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            );
+                                          }
+
+                                          final stats = reviewSnapshot.data!;
+                                          final averageRating =
+                                              stats['averageRating'] as double;
+                                          final totalReviews =
+                                              stats['totalReviews'] as int;
+
+                                          if (totalReviews == 0) {
+                                            return const SizedBox(
+                                              height: 18, // Consistent height
+                                              child: Text(
+                                                'No reviews yet',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            );
+                                          }
+
+                                          return SizedBox(
+                                            height: 18, // Consistent height
+                                            child: Row(
+                                              children: [
+                                                // Star rating display
+                                                Row(
+                                                  children: List.generate(5, (
+                                                    index,
+                                                  ) {
+                                                    return Icon(
+                                                      index <
+                                                              averageRating
+                                                                  .floor()
+                                                          ? Icons.star
+                                                          : (index <
+                                                                  averageRating &&
+                                                              averageRating %
+                                                                      1 >=
+                                                                  0.5)
+                                                          ? Icons.star_half
+                                                          : Icons.star_border,
+                                                      color:
+                                                          AppColors.highlight,
+                                                      size: 14, // Smaller star size
+                                                    );
+                                                  }),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '($totalReviews)',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
                                       ),
-                                      const SizedBox(height: 6),
+                                      const SizedBox(height: 4), // Reduced spacing
                                       SizedBox(
                                         width: double.infinity,
                                         child: ElevatedButton(
@@ -364,7 +462,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             backgroundColor: AppColors.primary,
                                             foregroundColor:
                                                 AppColors.background,
-                                            minimumSize: const Size(0, 36),
+                                            minimumSize: const Size(0, 32), // Slightly smaller button
                                             padding: EdgeInsets.zero,
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
@@ -377,6 +475,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             maxLines: 1,
                                             style: TextStyle(
                                               fontWeight: FontWeight.w600,
+                                              fontSize: 13, // Smaller font size
                                             ),
                                           ),
                                         ),
