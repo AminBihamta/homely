@@ -230,7 +230,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
-                  height: 220, // Increased height to accommodate dynamic content
+                  height:
+                      235, // Increased height to accommodate dynamic content
                   child: StreamBuilder<QuerySnapshot>(
                     stream:
                         FirebaseFirestore.instance
@@ -306,7 +307,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Container(
-                                        height: 85, // Slightly reduced image height
+                                        height:
+                                            85, // Slightly reduced image height
                                         width: double.infinity,
                                         decoration: BoxDecoration(
                                           borderRadius: BorderRadius.circular(
@@ -322,7 +324,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                           color: AppColors.primary,
                                         ),
                                       ),
-                                      const SizedBox(height: 6), // Reduced spacing
+                                      const SizedBox(
+                                        height: 4,
+                                      ), // Further reduced spacing
                                       Text(
                                         data['name'] ?? 'Service Name',
                                         style: const TextStyle(
@@ -333,7 +337,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(height: 3), // Reduced spacing
+                                      const SizedBox(
+                                        height: 2,
+                                      ), // Further reduced spacing
                                       // Dynamic reviews display
                                       FutureBuilder<Map<String, dynamic>>(
                                         future:
@@ -344,7 +350,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           if (reviewSnapshot.connectionState ==
                                               ConnectionState.waiting) {
                                             return const SizedBox(
-                                              height: 18, // Slightly reduced height
+                                              height:
+                                                  18, // Slightly reduced height
                                               child: Row(
                                                 children: [
                                                   SizedBox(
@@ -423,7 +430,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           : Icons.star_border,
                                                       color:
                                                           AppColors.highlight,
-                                                      size: 14, // Smaller star size
+                                                      size:
+                                                          14, // Smaller star size
                                                     );
                                                   }),
                                                 ),
@@ -440,7 +448,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                           );
                                         },
                                       ),
-                                      const SizedBox(height: 4), // Reduced spacing
+                                      const SizedBox(
+                                        height: 2,
+                                      ), // Further reduced spacing
                                       SizedBox(
                                         width: double.infinity,
                                         child: ElevatedButton(
@@ -462,7 +472,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                             backgroundColor: AppColors.primary,
                                             foregroundColor:
                                                 AppColors.background,
-                                            minimumSize: const Size(0, 32), // Slightly smaller button
+                                            minimumSize: const Size(
+                                              0,
+                                              32,
+                                            ), // Slightly smaller button
                                             padding: EdgeInsets.zero,
                                             shape: RoundedRectangleBorder(
                                               borderRadius:

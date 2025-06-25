@@ -5,8 +5,29 @@ import '../theme/colors.dart';
 import 'edit_appointment_screen.dart';
 import '../widgets/homely_scaffold.dart';
 
-class CurrentAppointmentsPage extends StatelessWidget {
+class CurrentAppointmentsPage extends StatefulWidget {
   const CurrentAppointmentsPage({super.key});
+
+  @override
+  State<CurrentAppointmentsPage> createState() =>
+      _CurrentAppointmentsPageState();
+}
+
+class _CurrentAppointmentsPageState extends State<CurrentAppointmentsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Auto-complete old appointments when screen loads
+    _autoCompleteOldAppointments();
+  }
+
+  Future<void> _autoCompleteOldAppointments() async {
+    try {
+      await AppointmentService.autoCompleteOldAppointments();
+    } catch (e) {
+      print('Error auto-completing old appointments: $e');
+    }
+  }
 
   bool _isUpcoming(Map<String, dynamic> appt) {
     try {
@@ -103,7 +124,6 @@ class CurrentAppointmentsPage extends StatelessWidget {
                 final serviceName = appt['serviceName'] ?? '';
                 final displayStatus = _getDisplayStatus(status);
                 final statusColor = _getStatusColor(status);
-                final isEditable = status.toLowerCase() != 'accepted';
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16),
@@ -221,6 +241,107 @@ class CurrentAppointmentsPage extends StatelessWidget {
                                       tooltip: 'Edit appointment',
                                     ),
                                   ),
+
+                                // Complete Button (only show for accepted appointments)
+                                if (status.toLowerCase() == 'accepted') ...[
+                                  Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE8F5E8),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: IconButton(
+                                      icon: const Icon(
+                                        Icons.check_circle,
+                                        color: Color(0xFF4CAF50),
+                                        size: 18,
+                                      ),
+                                      onPressed: () async {
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder:
+                                              (context) => AlertDialog(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                backgroundColor:
+                                                    AppColors.background,
+                                                title: const Text(
+                                                  'Complete Appointment',
+                                                  style: TextStyle(
+                                                    color: AppColors.text,
+                                                  ),
+                                                ),
+                                                content: const Text(
+                                                  'Mark this appointment as completed?',
+                                                  style: TextStyle(
+                                                    color: AppColors.text,
+                                                  ),
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed:
+                                                        () => Navigator.pop(
+                                                          context,
+                                                          false,
+                                                        ),
+                                                    child: const Text(
+                                                      'Cancel',
+                                                      style: TextStyle(
+                                                        color: AppColors.text,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed:
+                                                        () => Navigator.pop(
+                                                          context,
+                                                          true,
+                                                        ),
+                                                    child: const Text(
+                                                      'Complete',
+                                                      style: TextStyle(
+                                                        color: Color(
+                                                          0xFF4CAF50,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                        );
+                                        if (confirm == true) {
+                                          await AppointmentService.completeAppointment(
+                                            appt['id'],
+                                          );
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Appointment completed',
+                                                ),
+                                                backgroundColor: Color(
+                                                  0xFF4CAF50,
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      tooltip: 'Mark as completed',
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
+
+                                // Edit button spacing (only if not accepted)
+                                if (status.toLowerCase() != 'accepted')
+                                  const SizedBox(width: 8),
+
                                 // Cancel Button (always shown)
                                 Container(
                                   width: 36,
