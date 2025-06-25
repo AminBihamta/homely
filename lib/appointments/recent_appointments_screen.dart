@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../theme/colors.dart';
 import '../widgets/homely_scaffold.dart';
 import '../services/appointment_service.dart';
+import '../screens/create_review_screen.dart';
 
 class RecentAppointmentsPage extends StatefulWidget {
   const RecentAppointmentsPage({super.key});
@@ -163,54 +164,101 @@ class _RecentAppointmentsPageState extends State<RecentAppointmentsPage> {
                         const SizedBox(height: 12),
 
                         // Status and Completion Info
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Completed Status
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: const BoxDecoration(
-                                    color: Color(
-                                      0xFF4CAF50,
-                                    ), // Green for completed
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                const Text(
-                                  'Completed',
-                                  style: TextStyle(
-                                    color: Color(0xFF4CAF50),
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                if (isAutoCompleted) ...[
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
+                                // Completed Status
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: const BoxDecoration(
+                                        color: Color(
+                                          0xFF4CAF50,
+                                        ), // Green for completed
+                                        shape: BoxShape.circle,
+                                      ),
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.orange.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Text(
-                                      'Auto',
+                                    const SizedBox(width: 6),
+                                    const Text(
+                                      'Completed',
                                       style: TextStyle(
-                                        color: Colors.orange,
-                                        fontSize: 10,
+                                        color: Color(0xFF4CAF50),
+                                        fontSize: 13,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
+                                    if (isAutoCompleted) ...[
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Auto',
+                                          style: TextStyle(
+                                            color: Colors.orange,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+
+                                // Review Button
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (_) => CreateReviewScreen(
+                                              serviceId:
+                                                  appt['serviceId'] ?? '',
+                                              providerId:
+                                                  appt['providerId'] ?? '',
+                                              serviceName: serviceName,
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Review',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
-                                ],
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.highlight,
+                                    elevation: 2,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    minimumSize: const Size(0, 32),
+                                  ),
+                                ),
                               ],
                             ),
+                            const SizedBox(height: 8),
 
                             // Completion Date
                             Text(

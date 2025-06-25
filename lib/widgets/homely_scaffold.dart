@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/login_screen.dart';
 import '../home_screen.dart';
+import '../screens/all_services_screen.dart';
 import '../appointments/current_appointments_screen.dart';
 import '../appointments/recent_appointments_screen.dart';
 import '../appointments/provider_pending_appointments_screen.dart';
@@ -67,6 +68,26 @@ class HomelyScaffold extends StatelessWidget {
           context,
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
+      }
+    } else if (index == 1) {
+      // Menu icon - All Services for homeowners only
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final doc =
+            await FirebaseFirestore.instance
+                .collection('user_data')
+                .doc(user.uid)
+                .get();
+        final data = doc.data() ?? {};
+        final isProvider = data['isProvider'] == true;
+        if (!isProvider) {
+          // Only navigate to All Services for homeowners
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const AllServicesScreen()),
+          );
+        }
+        // For providers, do nothing (menu doesn't apply to them)
       }
     } else if (index == 2) {
       // Check if user is provider
