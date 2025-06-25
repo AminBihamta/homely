@@ -392,8 +392,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           color: AppColors.text,
                                           fontSize: 14, // Slightly smaller font
                                         ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 4,
+                                        overflow: TextOverflow.visible,
                                       ),
                                       const SizedBox(
                                         height: 2,

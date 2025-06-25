@@ -238,7 +238,7 @@ class _EditAppointmentPageState extends State<EditAppointmentPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFFDFBF9),
       body: SafeArea(
-        child: Center(
+        child: SingleChildScrollView(
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: const EdgeInsets.all(20),
